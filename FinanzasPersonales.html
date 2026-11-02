@@ -3,27 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Finanzas Pro - Local Edition v4.1.0</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace']
-                    }
-                }
-            }
-        }
-    </script>
+    <title>Gestor de Finanzas Pro - Local Edition v4.2.0</title>
+    <link rel="stylesheet" href="vendor/fonts.css">
+    <link rel="stylesheet" href="vendor/tailwind.css">
+    <script src="vendor/chart.umd.min.js"></script>
+    <script src="vendor/exceljs.min.js"></script>
+    <script src="vendor/pdf.min.js"></script>
     <style>
         :root {
             --primary: #090d16;
@@ -270,6 +255,48 @@
     </div>
 </div>
 
+<!-- Modal Editar movimiento -->
+<div id="modal-editar" class="modal-overlay" role="dialog">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 p-8 max-w-md w-full mx-4 animate-modal-card">
+        <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-100 dark:border-blue-900/40">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white">Editar movimiento</h2>
+                <p id="edit-subtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"></p>
+            </div>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Detalle</label>
+                <input type="text" id="edit-detalle" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Monto ($)</label>
+                    <input type="number" step="0.01" id="edit-monto" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Categoría</label>
+                    <select id="edit-categoria" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"></select>
+                </div>
+            </div>
+            <label id="edit-todas-wrap" class="flex items-start gap-3 cursor-pointer p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+                <input type="checkbox" id="edit-todas" checked class="mt-0.5 accent-blue-600 w-4 h-4">
+                <div>
+                    <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Aplicar a todas las cuotas</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">Cambia detalle, monto y categoría en cada mes del consumo.</p>
+                </div>
+            </label>
+        </div>
+        <div class="flex gap-3 mt-8">
+            <button onclick="cerrarModal('modal-editar')" class="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cancelar</button>
+            <button onclick="guardarEdicion()" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md shadow-blue-600/25 transition">Guardar cambios</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Preview PDF -->
 <div id="modal-preview" class="modal-overlay" role="dialog">
     <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 w-full max-w-3xl mx-4 flex flex-col max-h-[90vh] overflow-hidden animate-modal-card">
@@ -310,6 +337,7 @@
                     <tr>
                         <th class="p-3.5">✓</th>
                         <th class="p-3.5">Detalle</th>
+                        <th class="p-3.5">Categoría</th>
                         <th class="p-3.5 text-center">Cuota</th>
                         <th class="p-3.5 text-right">Monto</th>
                     </tr>
@@ -337,7 +365,7 @@
                         Finanzas <span class="text-blue-600 dark:text-blue-400">Local</span>
                     </h1>
                     <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800 tracking-wider">PRO</span>
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.1.0</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.2.0</span>
                 </div>
                 <p class="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide mt-0.5">Gestión Manual de Consumos (Ciudad & Galicia)</p>
             </div>
@@ -433,8 +461,13 @@
             <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Cargar Egreso Vario</p>
                 <div class="space-y-2">
-                    <input type="text" id="egresoVarioDetalle" placeholder="Detalle (ej: Expensas)" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+                    <input type="text" id="egresoVarioDetalle" placeholder="Detalle (ej: Expensas)" oninput="autoCategoria(this.value)" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
                     <input type="number" id="egresoVarioMonto" placeholder="Monto" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+                    <select id="egresoVarioCategoria" onchange="this.dataset.manual='1'" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"></select>
+                    <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">
+                        <input type="checkbox" id="egresoVarioRecurrente" class="accent-blue-600 w-4 h-4 rounded">
+                        Se repite todos los meses
+                    </label>
                     <button onclick="agregarEgresoVario()" class="w-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white py-2.5 rounded-xl font-bold shadow-sm transition-all text-xs uppercase tracking-wider active:scale-[0.98]">Agregar Gasto</button>
                 </div>
             </div>
@@ -506,6 +539,7 @@
                     <option value="GALICIA">Galicia</option>
                     <option value="OTROS">Otros Gastos</option>
                 </select>
+                <select id="filtroCategoria" onchange="actualizarUI()" class="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 transition"></select>
                 <input type="text" id="filtroTexto" oninput="actualizarUI()" placeholder="Buscar concepto o monto..." class="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 w-full sm:w-56 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 transition">
             </div>
             <div class="flex gap-2 w-full md:w-auto flex-wrap justify-end">
@@ -536,7 +570,7 @@
 
 <script>
 // ── Versión de la app ────────────────────────────────────────────
-const APP_VERSION = '4.1.0';
+const APP_VERSION = '4.2.0';
 
 // ── PDF.js setup ────────────────────────────────────────────────
 if (window['pdfjs-dist/build/pdf']) {
@@ -544,22 +578,91 @@ if (window['pdfjs-dist/build/pdf']) {
 } else {
     window._pdfjsLib = window.pdfjsLib;
 }
-window._pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+window._pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
 </script>
 
 <script>
-// ── Dark mode ────────────────────────────────────────────────────
-function toggleDarkMode() {
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem('finanzas_v3_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-    if (chartInstance) actualizarUI();
+// ── Categorías ───────────────────────────────────────────────────
+const CATEGORIAS = ['Sin categoría', 'Supermercado', 'Comida', 'Transporte', 'Salud', 'Servicios',
+    'Suscripciones', 'Indumentaria', 'Entretenimiento', 'Hogar', 'Educación', 'Otros'];
+// Palabras clave para sugerir la categoría a partir del detalle del consumo
+const PALABRAS_CATEGORIA = [
+    [/SUPERMERCADO|CARREFOUR|\bCOTO\b|JUMBO|\bVEA\b|\bDISCO\b|MAXICONSUMO|CHANGOMAS/i, 'Supermercado'],
+    [/RESTAURANT|\bRESTO\b|PIZZA|\bCAFE\b|CAFÉ|MCDONALD|BURGER|PEDIDOSYA|RAPPI|GLOVO/i, 'Comida'],
+    [/\bNAFTA\b|\bYPF\b|\bSHELL\b|\bAXION\b|PEAJE|\bUBER\b|CABIFY|ESTACIONAMIENTO/i, 'Transporte'],
+    [/FARMACIA|CLINICA|CLÍNICA|\bOSDE\b|SWISS MEDICAL|HOSPITAL|DENTAL/i, 'Salud'],
+    [/EDENOR|EDESUR|METROGAS|\bAYSA\b|TELECOM|PERSONAL|MOVISTAR|\bCLARO\b|FIBERTEL/i, 'Servicios'],
+    [/NETFLIX|SPOTIFY|DISNEY|\bHBO\b|YOUTUBE|APPLE\.COM|ADOBE|AMAZON PRIME/i, 'Suscripciones'],
+    [/\bZARA\b|\bH&M\b|NIKE|ADIDAS|FOREVER 21/i, 'Indumentaria'],
+    [/\bCINE\b|HOYTS|TEATRO|STEAM|PLAYSTATION|NINTENDO/i, 'Entretenimiento'],
+    [/FERRETERIA|MERCADO ?LIBRE|SODIMAC/i, 'Hogar'],
+    [/UNIVERSIDAD|COLEGIO|LIBRERIA/i, 'Educación'],
+];
+function sugerirCategoria(detalle) {
+    const d = String(detalle).toUpperCase();
+    const hit = PALABRAS_CATEGORIA.find(([re]) => re.test(d));
+    return hit ? hit[1] : 'Sin categoría';
 }
-if (localStorage.getItem('finanzas_v3_theme') === 'dark') document.documentElement.classList.add('dark');
+function opcionesCategoria(seleccion) {
+    return CATEGORIAS.map(c => `<option value="${c}" ${c === seleccion ? 'selected' : ''}>${c}</option>`).join('');
+}
+
+// ── Fechas (siempre en hora local, sin UTC) ──────────────────────
+function mesActual() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+function hoyISO() {
+    const d = new Date();
+    return `${mesActual()}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function sumarMeses(mesIso, n) {
+    const [y, m] = mesIso.split('-').map(Number);
+    const total = y * 12 + (m - 1) + n;
+    return `${Math.floor(total / 12)}-${String((total % 12) + 1).padStart(2, '0')}`;
+}
+function etiquetaMes(mes, opts) {
+    const [y, m] = mes.split('-').map(Number);
+    return new Date(y, m - 1, 1).toLocaleString('es-AR', opts || { month: 'short' });
+}
+
+// ── Modelo de datos ──────────────────────────────────────────────
+// Un consumo en cuotas tiene una fila por mes (mismo grupoId).
+// Un gasto mensual (recurrente) tiene una sola fila; se proyecta en cada mes vigente.
+function normalizarMovimiento(t) {
+    return { ...t, categoria: t.categoria || 'Sin categoría' };
+}
+function grupoDe(t) {
+    if (t.grupoId) return t.grupoId;
+    return (t._base || t.id).split('-').slice(0, -1).join('-');
+}
+// Devuelve el registro guardado a partir de un id (los mensuales se ven con id "base@mes")
+function obtenerBase(id) {
+    const baseId = String(id).split('@')[0];
+    return transacciones.find(x => x.id === baseId);
+}
+// Movimientos que corresponden a un mes, incluyendo los gastos mensuales vigentes
+function movimientosDelMes(mes) {
+    const out = [];
+    transacciones.forEach(t => {
+        if (t.recurrente) {
+            if (t.mesImputacion <= mes && (!t.hastaMes || mes <= t.hastaMes)) {
+                out.push({ ...t, id: `${t.id}@${mes}`, mesImputacion: mes, _base: t.id });
+            }
+        } else if (t.mesImputacion === mes) {
+            out.push(t);
+        }
+    });
+    return out;
+}
+function guardarDatos() {
+    localStorage.setItem('finanzas_v3_data', JSON.stringify(transacciones));
+}
 
 // ── State ────────────────────────────────────────────────────────
-let transacciones = JSON.parse(localStorage.getItem('finanzas_v3_data')) || [];
+let transacciones = (JSON.parse(localStorage.getItem('finanzas_v3_data')) || []).map(normalizarMovimiento);
 let config = JSON.parse(localStorage.getItem('finanzas_v3_config')) || {
-    mesReferencia: new Date().toISOString().substring(0, 7),
+    mesReferencia: mesActual(),
     ingresos: {}
 };
 if (!config.ingresos) config.ingresos = {};
@@ -575,13 +678,23 @@ if (config.ingresoSegufer !== undefined || config.ingresoEscuela !== undefined |
 }
 let chartInstance = null, chartRangeMonths = 6;
 let previewItems = []; // items pendientes de confirmar
+let editandoId = null;  // id del movimiento abierto en el modal de edición
 
 window.onload = () => {
+    poblarCategorias();
     document.getElementById('mesReferencia').value = config.mesReferencia;
     cargarIngresosDelMes();
     initDropZone();
     actualizarUI();
 };
+
+function poblarCategorias() {
+    document.getElementById('egresoVarioCategoria').innerHTML = opcionesCategoria('Sin categoría');
+    document.getElementById('edit-categoria').innerHTML = opcionesCategoria('Sin categoría');
+    document.getElementById('filtroCategoria').innerHTML =
+        '<option value="TODAS">Todas las categorías</option>' +
+        CATEGORIAS.map(c => `<option value="${c}">${c}</option>`).join('');
+}
 
 // ── Toast ────────────────────────────────────────────────────────
 let toastTimer;
@@ -609,7 +722,7 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 function exportarJSON() {
     if (!transacciones.length && !Object.keys(config.ingresos).length) { showToast('No hay datos para exportar.', false); return; }
     const payload = {
-        version: 4,
+        version: 5,
         appVersion: APP_VERSION,
         exportedAt: new Date().toISOString(),
         count: transacciones.length,
@@ -619,7 +732,7 @@ function exportarJSON() {
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `finanzas_backup_${new Date().toISOString().substring(0,10)}.json`;
+    a.download = `finanzas_backup_${hoyISO()}.json`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     showToast(`Backup exportado: ${transacciones.length} transacciones e ingresos.`);
 }
@@ -632,18 +745,19 @@ function ejecutarImport(event) {
         try {
             const parsed = JSON.parse(e.target.result);
             if (!parsed.transacciones || !Array.isArray(parsed.transacciones)) throw new Error('Formato inválido.');
+            const entrantes = parsed.transacciones.map(normalizarMovimiento);
             if (mode === 'replace') {
-                transacciones = parsed.transacciones;
+                transacciones = entrantes;
                 if (parsed.ingresos) config.ingresos = parsed.ingresos;
                 showToast(`Reemplazado: ${transacciones.length} transacciones cargadas.`);
             } else {
                 const ids = new Set(transacciones.map(t => t.id));
-                const nuevas = parsed.transacciones.filter(t => !ids.has(t.id));
+                const nuevas = entrantes.filter(t => !ids.has(t.id));
                 transacciones = [...transacciones, ...nuevas];
                 if (parsed.ingresos) config.ingresos = { ...config.ingresos, ...parsed.ingresos };
-                showToast(`Fusionado: ${nuevas.length} nuevas, ${parsed.transacciones.length - nuevas.length} duplicadas omitidas.`);
+                showToast(`Fusionado: ${nuevas.length} nuevas, ${entrantes.length - nuevas.length} duplicadas omitidas.`);
             }
-            localStorage.setItem('finanzas_v3_data', JSON.stringify(transacciones));
+            guardarDatos();
             localStorage.setItem('finanzas_v3_config', JSON.stringify(config));
             cargarIngresosDelMes();
             actualizarUI();
@@ -791,7 +905,7 @@ function parsearCiudad(lines) {
             .toUpperCase();
 
         if (!detalle) detalle = 'CONSUMO SIN NOMBRE';
-        items.push({ detalle, monto, cuotaActual, cuotaTotal, esNegativo });
+        items.push({ detalle, monto, cuotaActual, cuotaTotal, esNegativo, categoria: sugerirCategoria(detalle) });
     });
     return items;
 }
@@ -825,7 +939,7 @@ function parsearGalicia(lines) {
         detalle = detalle.replace(reCuota, '').replace(/\b\d{5,}\b/g, '').trim().toUpperCase();
 
         if (monto === 0 || isNaN(monto)) return;
-        items.push({ detalle, monto, cuotaActual, cuotaTotal, esNegativo });
+        items.push({ detalle, monto, cuotaActual, cuotaTotal, esNegativo, categoria: sugerirCategoria(detalle) });
     });
     return items;
 }
@@ -849,6 +963,7 @@ function mostrarPreview(banco, items) {
             <tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-blue-50/30 dark:hover:bg-blue-950/20 transition-colors">
                 <td class="p-3.5"><input type="checkbox" checked data-idx="${idx}" class="preview-check accent-blue-600 w-4 h-4 rounded cursor-pointer"></td>
                 <td class="p-3.5 font-semibold text-slate-800 dark:text-slate-200">${it.detalle}</td>
+                <td class="p-3.5"><select data-idx="${idx}" class="preview-cat border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500">${opcionesCategoria(it.categoria)}</select></td>
                 <td class="p-3.5 text-center text-slate-400 dark:text-slate-500 font-mono text-xs font-medium">${cuotaLabel}</td>
                 <td class="p-3.5 text-right tabular-nums ${colorMonto}">${fmt(it.monto)}</td>
             </tr>`;
@@ -870,23 +985,28 @@ function confirmarCargaPDF() {
 
     checks.forEach(chk => {
         if (!chk.checked) return;
-        const it = previewItems[parseInt(chk.dataset.idx)];
+        const idx = chk.dataset.idx;
+        const it = previewItems[parseInt(idx)];
+        const categoria = document.querySelector(`.preview-cat[data-idx="${idx}"]`)?.value || it.categoria;
         const restantes = it.monto < 0 ? 1 : (it.cuotaTotal - it.cuotaActual) + 1;
+        const grupoId = `${ts}-pdf-${idx}`;
 
         for (let i = 0; i < restantes; i++) {
             transacciones.push({
-                id: `${ts}-pdf-${chk.dataset.idx}-${i}`,
+                id: `${grupoId}-${i}`,
+                grupoId,
                 mesImputacion: sumarMeses(mesRef, i),
                 banco,
                 detalle: it.detalle,
                 cuota: `${it.cuotaActual + i}/${it.cuotaTotal}`,
-                monto: it.monto
+                monto: it.monto,
+                categoria
             });
             count++;
         }
     });
 
-    localStorage.setItem('finanzas_v3_data', JSON.stringify(transacciones));
+    guardarDatos();
     cerrarModal('modal-preview');
     actualizarUI();
     showToast(`${count} movimiento${count !== 1 ? 's' : ''} cargado${count !== 1 ? 's' : ''} correctamente.`);
@@ -926,19 +1046,41 @@ function cambiarMes(nuevoMes) {
     actualizarUI();
 }
 function irAMesActual() {
-    cambiarMes(new Date().toISOString().substring(0, 7));
+    cambiarMes(mesActual());
 }
 
 // ── Egreso vario ─────────────────────────────────────────────────
+function autoCategoria(texto) {
+    const sel = document.getElementById('egresoVarioCategoria');
+    if (sel.dataset.manual === '1') return; // si el usuario eligió una categoría, no la pisamos
+    sel.value = sugerirCategoria(texto);
+}
 function agregarEgresoVario() {
     const detalle = document.getElementById('egresoVarioDetalle').value.trim();
     const monto = parseFloat(document.getElementById('egresoVarioMonto').value);
     const mesRef = document.getElementById('mesReferencia').value;
+    const categoria = document.getElementById('egresoVarioCategoria').value;
+    const recurrente = document.getElementById('egresoVarioRecurrente').checked;
     if (!detalle || isNaN(monto) || monto <= 0) return alert('Ingrese un detalle y un monto válido mayor a 0.');
-    transacciones.push({ id: `${Date.now()}-manual-0`, mesImputacion: mesRef, banco: 'OTROS', detalle: detalle.toUpperCase(), cuota: '1/1', monto });
-    localStorage.setItem('finanzas_v3_data', JSON.stringify(transacciones));
+    const ts = Date.now();
+    transacciones.push({
+        id: `${ts}-manual-0`,
+        grupoId: `${ts}-manual`,
+        mesImputacion: mesRef,
+        banco: 'OTROS',
+        detalle: detalle.toUpperCase(),
+        cuota: '1/1',
+        monto,
+        categoria,
+        ...(recurrente ? { recurrente: true } : {})
+    });
+    guardarDatos();
     document.getElementById('egresoVarioDetalle').value = '';
     document.getElementById('egresoVarioMonto').value = '';
+    document.getElementById('egresoVarioRecurrente').checked = false;
+    const sel = document.getElementById('egresoVarioCategoria');
+    sel.value = 'Sin categoría';
+    sel.dataset.manual = '';
     actualizarUI();
 }
 
@@ -957,21 +1099,19 @@ function procesar(bancoElegido) {
         if (mm) monto = cleanAmount(mm[1]);
         let det = text.replace(/^\d{2}[-.]\d{2}[-.]\d{2,4}\s+[*K]?\s*/, '').replace(/(\d{2})\/(\d{2})/, '').replace(/[\d\.]+,\d{2}$/, '').replace(/\d{6,}$/, '').trim();
         if (!isNaN(monto) && monto !== 0) {
+            const grupoId = `${ts}-${idx}`;
+            const categoria = sugerirCategoria(det);
             for (let i = 0; i < ((cuotaTotal - cuotaActual) + 1); i++) {
-                transacciones.push({ id: `${ts}-${idx}-${i}`, mesImputacion: sumarMeses(mesRef, i), banco: bancoElegido, detalle: det || 'Consumo sin nombre', cuota: `${cuotaActual + i}/${cuotaTotal}`, monto });
+                transacciones.push({ id: `${grupoId}-${i}`, grupoId, mesImputacion: sumarMeses(mesRef, i), banco: bancoElegido, detalle: det || 'Consumo sin nombre', cuota: `${cuotaActual + i}/${cuotaTotal}`, monto, categoria });
                 count++;
             }
         }
     });
-    if (count > 0) { localStorage.setItem('finanzas_v3_data', JSON.stringify(transacciones)); document.getElementById('rawInput').value = ''; actualizarUI(); }
+    if (count > 0) { guardarDatos(); document.getElementById('rawInput').value = ''; actualizarUI(); }
     else alert('No se detectaron movimientos válidos. Las líneas deben terminar en monto con coma (ej: 5.953,33)');
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
-function sumarMeses(mesIso, n) {
-    let [y, m] = mesIso.split('-').map(Number);
-    return new Date(y, (m - 1) + n, 1).toISOString().substring(0, 7);
-}
 function cleanAmount(s) { return parseFloat(s.replace(/[^\d,]/g, '').replace(',', '.')); }
 function fmt(n) { return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(n); }
 
@@ -979,7 +1119,7 @@ function fmt(n) { return new Intl.NumberFormat('es-AR', { style: 'currency', cur
 function actualizarUI() {
     const mesRef = document.getElementById('mesReferencia').value;
     const tI = totalIngresos(mesRef);
-    const filMes = transacciones.filter(t => t.mesImputacion === mesRef);
+    const filMes = movimientosDelMes(mesRef);
     const tE = filMes.reduce((a, t) => a + t.monto, 0);
     document.getElementById('ui-ingresos').innerText = fmt(tI);
     document.getElementById('ui-egresos').innerText = fmt(tE);
@@ -987,9 +1127,11 @@ function actualizarUI() {
     document.getElementById('mes-titulo').innerText = mesRef;
 
     const fB = document.getElementById('filtroBanco')?.value || 'TODOS';
+    const fC = document.getElementById('filtroCategoria')?.value || 'TODAS';
     const fT = document.getElementById('filtroTexto')?.value.toLowerCase() || '';
     let filtradas = filMes;
     if (fB !== 'TODOS') filtradas = filtradas.filter(t => t.banco === fB);
+    if (fC !== 'TODAS') filtradas = filtradas.filter(t => t.categoria === fC);
     if (fT) filtradas = filtradas.filter(t => t.detalle.toLowerCase().includes(fT) || t.monto.toString().includes(fT));
 
     document.getElementById('contador-registros').innerText = `${filtradas.length} Items`;
@@ -999,11 +1141,17 @@ function actualizarUI() {
     tbody.innerHTML = '';
     filtradas.sort((a, b) => b.monto - a.monto).forEach(t => {
         const badge = t.banco === 'GALICIA' ? 'badge-galicia' : t.banco === 'CIUDAD' ? 'badge-ciudad' : 'badge-otros';
+        const etiqueta = t.recurrente
+            ? ' · <span class="text-blue-500 dark:text-blue-400">Mensual</span>'
+            : '';
         tbody.innerHTML += `
             <tr class="hover:bg-blue-50/40 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800/80">
                 <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider ${badge}">${t.banco}</span></td>
-                <td class="p-4 font-semibold text-slate-800 dark:text-slate-200">${t.detalle}</td>
-                <td class="p-4 text-center text-slate-400 dark:text-slate-500 font-mono text-xs font-semibold">${t.cuota}</td>
+                <td class="p-4">
+                    <div class="font-semibold text-slate-800 dark:text-slate-200">${t.detalle}</div>
+                    <div class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-0.5">${t.categoria}${etiqueta}</div>
+                </td>
+                <td class="p-4 text-center text-slate-400 dark:text-slate-500 font-mono text-xs font-semibold">${t.recurrente ? '—' : t.cuota}</td>
                 <td class="p-4 text-right font-bold tabular-nums text-slate-900 dark:text-slate-100 ${t.monto < 0 ? '!text-emerald-600 dark:!text-emerald-400' : ''}">${fmt(t.monto)}</td>
                 <td class="p-4 text-center">
                     <div class="flex justify-center items-center gap-1.5">
@@ -1023,22 +1171,76 @@ function actualizarUI() {
     updateChart();
 }
 
+// ── Editar / duplicar / borrar ───────────────────────────────────
 function editar(id) {
-    const t = transacciones.find(x => x.id === id); if (!t) return;
-    const nd = prompt('Editar detalle:', t.detalle);
-    if (nd !== null && nd.trim()) t.detalle = nd.toUpperCase();
-    const nm = prompt('Editar monto ($):', t.monto);
-    if (nm !== null && !isNaN(parseFloat(nm))) t.monto = parseFloat(nm);
-    localStorage.setItem('finanzas_v3_data', JSON.stringify(transacciones)); actualizarUI();
+    const base = obtenerBase(id); if (!base) return;
+    editandoId = base.id;
+    const cuotas = transacciones.filter(x => grupoDe(x) === grupoDe(base)).length;
+    const puedeAplicarATodas = !base.recurrente && cuotas > 1;
+    document.getElementById('edit-subtitle').textContent =
+        `${base.banco}${base.recurrente ? ' · gasto mensual' : (base.cuota !== '1/1' ? ' · cuota ' + base.cuota : '')}`;
+    document.getElementById('edit-detalle').value = base.detalle;
+    document.getElementById('edit-monto').value = base.monto;
+    document.getElementById('edit-categoria').innerHTML = opcionesCategoria(base.categoria);
+    document.getElementById('edit-todas').checked = true;
+    document.getElementById('edit-todas-wrap').classList.toggle('hidden', !puedeAplicarATodas);
+    abrirModal('modal-editar');
+}
+function guardarEdicion() {
+    const base = transacciones.find(x => x.id === editandoId);
+    if (!base) { cerrarModal('modal-editar'); return; }
+    const det = document.getElementById('edit-detalle').value.trim();
+    const monto = parseFloat(document.getElementById('edit-monto').value);
+    if (!det || isNaN(monto) || monto === 0) return showToast('Ingresá un detalle y un monto distinto de 0.', false);
+    const categoria = document.getElementById('edit-categoria').value;
+    const aplicarATodas = !document.getElementById('edit-todas-wrap').classList.contains('hidden')
+        && document.getElementById('edit-todas').checked;
+    const destinos = aplicarATodas ? transacciones.filter(x => grupoDe(x) === grupoDe(base)) : [base];
+    destinos.forEach(x => { x.detalle = det.toUpperCase(); x.monto = monto; x.categoria = categoria; });
+    guardarDatos();
+    cerrarModal('modal-editar');
+    actualizarUI();
+    showToast(aplicarATodas && destinos.length > 1 ? `Actualizadas ${destinos.length} cuotas.` : 'Movimiento actualizado.');
 }
 function duplicar(id) {
-    const t = transacciones.find(x => x.id === id); if (!t) return;
-    transacciones.push({ ...t, id: `${Date.now()}-dup`, mesImputacion: document.getElementById('mesReferencia').value });
-    localStorage.setItem('finanzas_v3_data', JSON.stringify(transacciones)); actualizarUI();
+    const base = obtenerBase(id); if (!base) return;
+    const { hastaMes, recurrente, ...resto } = base;
+    const ts = Date.now();
+    transacciones.push({
+        ...resto,
+        id: `${ts}-dup-0`,
+        grupoId: `${ts}-dup`,
+        mesImputacion: document.getElementById('mesReferencia').value,
+        cuota: recurrente ? '1/1' : base.cuota
+    });
+    guardarDatos();
+    actualizarUI();
 }
 function borrar(id) {
-    transacciones = transacciones.filter(t => t.id !== id);
-    localStorage.setItem('finanzas_v3_data', JSON.stringify(transacciones)); actualizarUI();
+    const base = obtenerBase(id); if (!base) return;
+    const mesRef = document.getElementById('mesReferencia').value;
+    if (base.recurrente) {
+        const desde = etiquetaMes(mesRef, { month: 'long', year: 'numeric' });
+        if (!confirm(`"${base.detalle}" se repite todos los meses.\n\n¿Dejar de repetirlo desde ${desde}? Los meses anteriores no se modifican.`)) return;
+        const previo = sumarMeses(mesRef, -1);
+        if (previo < base.mesImputacion) transacciones = transacciones.filter(x => x !== base);
+        else base.hastaMes = previo;
+    } else {
+        const grupo = transacciones.filter(x => grupoDe(x) === grupoDe(base));
+        if (grupo.length > 1) {
+            if (confirm(`"${base.detalle}" tiene ${grupo.length} cuotas (una por mes).\n\nAceptar: borra TODAS las cuotas.\nCancelar: elegís si borrar solo la de ${etiquetaMes(base.mesImputacion, { month: 'long', year: 'numeric' })}.`)) {
+                transacciones = transacciones.filter(x => !grupo.includes(x));
+            } else if (confirm(`¿Borrar solo la cuota de ${etiquetaMes(base.mesImputacion, { month: 'long', year: 'numeric' })}?`)) {
+                transacciones = transacciones.filter(x => x !== base);
+            } else {
+                return;
+            }
+        } else {
+            transacciones = transacciones.filter(x => x !== base);
+        }
+    }
+    guardarDatos();
+    actualizarUI();
 }
 function confirmReset() {
     if (confirm('¿Borrar todos los datos locales?')) { transacciones = []; localStorage.clear(); location.reload(); }
@@ -1048,13 +1250,14 @@ function confirmReset() {
 function updateChart() {
     const ctx = document.getElementById('mainChart').getContext('2d');
     const labels = Array.from({ length: chartRangeMonths }, (_, i) => sumarMeses(config.mesReferencia, i));
+    const delMes = Object.fromEntries(labels.map(l => [l, movimientosDelMes(l)]));
 
     // Egresos NETOS por mes: las devoluciones (montos negativos) restan
-    const dataEPuntual = labels.map(l => transacciones
-        .filter(t => t.mesImputacion === l && t.cuota && t.cuota.endsWith('/1'))
+    const dataEPuntual = labels.map(l => delMes[l]
+        .filter(t => t.cuota && t.cuota.endsWith('/1'))
         .reduce((a, b) => a + b.monto, 0));
-    const dataECuotas = labels.map(l => transacciones
-        .filter(t => t.mesImputacion === l && t.cuota && !t.cuota.endsWith('/1'))
+    const dataECuotas = labels.map(l => delMes[l]
+        .filter(t => t.cuota && !t.cuota.endsWith('/1'))
         .reduce((a, b) => a + b.monto, 0));
 
     // Ingresos: solo en el mes al que pertenecen
@@ -1071,7 +1274,7 @@ function updateChart() {
     chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: labels.map(l => new Date(l + '-02').toLocaleString('es-AR', { month: 'short' }).toUpperCase()),
+            labels: labels.map(l => etiquetaMes(l, { month: 'short' }).toUpperCase()),
             datasets: [
                 { label: 'Ingresos', data: dataIngresos, backgroundColor: colorIngresos, borderRadius: 6, barPercentage: 0.75, categoryPercentage: 0.55, stack: 'ingresos' },
                 { label: 'Gastos en cuotas', data: dataECuotas, backgroundColor: colorCuotas, borderRadius: 0, barPercentage: 0.75, categoryPercentage: 0.55, stack: 'egresos' },
@@ -1127,30 +1330,32 @@ async function exportarExcel() {
     if (typeof ExcelJS === 'undefined') { alert('La librería de Excel aún se está cargando.'); return; }
 
     const mesInicio = document.getElementById('mesReferencia').value;
-    const tf = transacciones.filter(t => t.mesImputacion >= mesInicio);
+
+    // Meses a proyectar: desde el mes elegido hasta el último movimiento.
+    // Los gastos mensuales sin fin se proyectan 12 meses.
+    let mesMax = mesInicio;
+    transacciones.forEach(t => {
+        if (t.recurrente) {
+            const fin = t.hastaMes || sumarMeses(mesInicio, 11);
+            if (fin > mesMax) mesMax = fin;
+        } else if (t.mesImputacion > mesMax) {
+            mesMax = t.mesImputacion;
+        }
+    });
+    const cols = [];
+    for (let mi = mesInicio; mi <= mesMax; mi = sumarMeses(mi, 1)) cols.push(mi);
+
+    const tf = cols.flatMap(m => movimientosDelMes(m));
     if (!tf.length) return alert('No hay consumos proyectados desde este mes en adelante.');
 
     // ── Construir mapa de filas ──────────────────────────────────
-    // Cada transacción es una fila independiente en el reporte.
-    // Las cuotas de un mismo consumo comparten el mismo "groupKey"
-    // (timestamp + índice de línea) y se distribuyen en columnas de meses.
+    // Las cuotas de un mismo consumo comparten grupoId y van a la misma fila, distribuidas por mes.
+    // Los gastos mensuales aparecen en todos los meses en que están vigentes.
     const grupos = {};
-    let mesMax = mesInicio;
-
     tf.forEach(t => {
-        if (t.mesImputacion > mesMax) mesMax = t.mesImputacion;
-
-        // groupKey: para cuotas del mismo consumo (ej: "1234567890-3-0", "1234567890-3-1", "1234567890-3-2")
-        // los primeros dos segmentos identifican el consumo origen; el tercero es el índice de cuota.
-        // Así todas las cuotas de un mismo consumo van a la misma fila, distribuidas por mes.
-        const partes = t.id.split('-');
-        // ids de PDF: "TS-pdf-IDX-CUOTA" → groupKey = "TS-pdf-IDX"
-        // ids de texto: "TS-LINEA-CUOTA" → groupKey = "TS-LINEA"
-        // ids manuales: "TS-manual-0" → groupKey = "TS-manual"
-        const groupKey = partes.slice(0, -1).join('-');
-
-        if (!grupos[groupKey]) {
-            grupos[groupKey] = {
+        const key = grupoDe(t);
+        if (!grupos[key]) {
+            grupos[key] = {
                 banco: t.banco === 'CIUDAD' ? 'Banco Ciudad'
                       : t.banco === 'GALICIA' ? 'Banco Galicia'
                       : 'Otros Gastos',
@@ -1158,18 +1363,11 @@ async function exportarExcel() {
                 montos: {}
             };
         }
-        // Si hay dos cuotas en el mismo mes (caso raro), sumarlas
-        grupos[groupKey].montos[t.mesImputacion] =
-            (grupos[groupKey].montos[t.mesImputacion] || 0) + t.monto;
+        grupos[key].montos[t.mesImputacion] =
+            (grupos[key].montos[t.mesImputacion] || 0) + t.monto;
     });
 
-    // ── Columnas de meses ────────────────────────────────────────
-    const cols = []; let mi = mesInicio;
-    while (mi <= mesMax) { cols.push(mi); mi = sumarMeses(mi, 1); }
-
-    const fmtMes = m => new Date(m + '-02')
-        .toLocaleString('es-AR', { month: 'short', year: 'numeric' })
-        .toUpperCase();
+    const fmtMes = m => etiquetaMes(m, { month: 'short', year: 'numeric' }).toUpperCase();
 
     // ── Workbook ─────────────────────────────────────────────────
     const wb = new ExcelJS.Workbook();
