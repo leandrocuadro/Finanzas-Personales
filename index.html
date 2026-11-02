@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Finanzas Pro - Local Edition</title>
+    <title>Gestor de Finanzas Pro - Local Edition v4.1.0</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -41,7 +41,7 @@
             background-color: #090d16;
             color: #f8fafc;
         }
-        
+
         /* Modern Card System */
         .card {
             background: #ffffff;
@@ -245,13 +245,13 @@
                 <p class="text-xs text-slate-500 dark:text-slate-400">Elegí cómo querés cargar el JSON.</p>
             </div>
         </div>
-        
+
         <div class="space-y-3 my-6">
             <label class="flex items-start gap-3 cursor-pointer p-3.5 rounded-xl border-2 border-blue-500 bg-blue-50/70 dark:bg-blue-950/30 transition-all">
                 <input type="radio" name="importMode" value="merge" checked class="mt-0.5 accent-blue-600">
                 <div>
                     <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Fusionar datos</p>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">Agrega las transacciones del archivo a las existentes. Evita duplicados por ID.</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">Agrega las transacciones e ingresos del archivo a los existentes. Evita duplicados por ID.</p>
                 </div>
             </label>
             <label class="flex items-start gap-3 cursor-pointer p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all">
@@ -337,6 +337,7 @@
                         Finanzas <span class="text-blue-600 dark:text-blue-400">Local</span>
                     </h1>
                     <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800 tracking-wider">PRO</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.1.0</span>
                 </div>
                 <p class="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide mt-0.5">Gestión Manual de Consumos (Ciudad & Galicia)</p>
             </div>
@@ -419,10 +420,10 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">Mes del Resumen</label>
                     <button onclick="irAMesActual()" class="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline">MES ACTUAL</button>
                 </div>
-                <input type="month" id="mesReferencia" onchange="saveConfig(); actualizarUI();" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+                <input type="month" id="mesReferencia" onchange="cambiarMes(this.value)" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
             </div>
             <div class="space-y-3 pt-2">
-                <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Configurar Ingresos</p>
+                <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Configurar Ingresos del Mes</p>
                 <div class="space-y-2">
                     <input type="number" id="ingresoSegufer" placeholder="SEGUFER SA" oninput="saveConfig(); actualizarUI();" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
                     <input type="number" id="ingresoEscuela" placeholder="ESCUELA" oninput="saveConfig(); actualizarUI();" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
@@ -534,6 +535,9 @@
 </div>
 
 <script>
+// ── Versión de la app ────────────────────────────────────────────
+const APP_VERSION = '4.1.0';
+
 // ── PDF.js setup ────────────────────────────────────────────────
 if (window['pdfjs-dist/build/pdf']) {
     window._pdfjsLib = window['pdfjs-dist/build/pdf'];
@@ -556,11 +560,17 @@ if (localStorage.getItem('finanzas_v3_theme') === 'dark') document.documentEleme
 let transacciones = JSON.parse(localStorage.getItem('finanzas_v3_data')) || [];
 let config = JSON.parse(localStorage.getItem('finanzas_v3_config')) || {
     mesReferencia: new Date().toISOString().substring(0, 7),
-    ingresoSegufer: 0, ingresoEscuela: 0, ingresoOtros: 0
+    ingresos: {}
 };
-if (config.ingresoA !== undefined) {
-    config.ingresoSegufer = config.ingresoA || 0; config.ingresoEscuela = config.ingresoB || 0; config.ingresoOtros = 0;
-    delete config.ingresoA; delete config.ingresoB;
+if (!config.ingresos) config.ingresos = {};
+// Migración: la versión anterior guardaba un único ingreso global
+if (config.ingresoSegufer !== undefined || config.ingresoEscuela !== undefined || config.ingresoOtros !== undefined) {
+    config.ingresos[config.mesReferencia] = {
+        segufer: config.ingresoSegufer || 0,
+        escuela: config.ingresoEscuela || 0,
+        otros: config.ingresoOtros || 0
+    };
+    delete config.ingresoSegufer; delete config.ingresoEscuela; delete config.ingresoOtros;
     localStorage.setItem('finanzas_v3_config', JSON.stringify(config));
 }
 let chartInstance = null, chartRangeMonths = 6;
@@ -568,9 +578,7 @@ let previewItems = []; // items pendientes de confirmar
 
 window.onload = () => {
     document.getElementById('mesReferencia').value = config.mesReferencia;
-    document.getElementById('ingresoSegufer').value = config.ingresoSegufer || '';
-    document.getElementById('ingresoEscuela').value = config.ingresoEscuela || '';
-    document.getElementById('ingresoOtros').value = config.ingresoOtros || '';
+    cargarIngresosDelMes();
     initDropZone();
     actualizarUI();
 };
@@ -599,13 +607,21 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 
 // ── Backup JSON ──────────────────────────────────────────────────
 function exportarJSON() {
-    if (!transacciones.length) { showToast('No hay datos para exportar.', false); return; }
-    const blob = new Blob([JSON.stringify({ version: 3, exportedAt: new Date().toISOString(), count: transacciones.length, transacciones }, null, 2)], { type: 'application/json' });
+    if (!transacciones.length && !Object.keys(config.ingresos).length) { showToast('No hay datos para exportar.', false); return; }
+    const payload = {
+        version: 4,
+        appVersion: APP_VERSION,
+        exportedAt: new Date().toISOString(),
+        count: transacciones.length,
+        transacciones,
+        ingresos: config.ingresos
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `finanzas_backup_${new Date().toISOString().substring(0,10)}.json`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    showToast(`Backup exportado: ${transacciones.length} transacciones.`);
+    showToast(`Backup exportado: ${transacciones.length} transacciones e ingresos.`);
 }
 function ejecutarImport(event) {
     cerrarModal('modal-backup');
@@ -618,14 +634,18 @@ function ejecutarImport(event) {
             if (!parsed.transacciones || !Array.isArray(parsed.transacciones)) throw new Error('Formato inválido.');
             if (mode === 'replace') {
                 transacciones = parsed.transacciones;
+                if (parsed.ingresos) config.ingresos = parsed.ingresos;
                 showToast(`Reemplazado: ${transacciones.length} transacciones cargadas.`);
             } else {
                 const ids = new Set(transacciones.map(t => t.id));
                 const nuevas = parsed.transacciones.filter(t => !ids.has(t.id));
                 transacciones = [...transacciones, ...nuevas];
+                if (parsed.ingresos) config.ingresos = { ...config.ingresos, ...parsed.ingresos };
                 showToast(`Fusionado: ${nuevas.length} nuevas, ${parsed.transacciones.length - nuevas.length} duplicadas omitidas.`);
             }
             localStorage.setItem('finanzas_v3_data', JSON.stringify(transacciones));
+            localStorage.setItem('finanzas_v3_config', JSON.stringify(config));
+            cargarIngresosDelMes();
             actualizarUI();
         } catch(err) { showToast(`Error: ${err.message}`, false); }
     };
@@ -872,17 +892,41 @@ function confirmarCargaPDF() {
     showToast(`${count} movimiento${count !== 1 ? 's' : ''} cargado${count !== 1 ? 's' : ''} correctamente.`);
 }
 
-// ── Config ───────────────────────────────────────────────────────
-function irAMesActual() {
-    document.getElementById('mesReferencia').value = new Date().toISOString().substring(0, 7);
-    saveConfig(); actualizarUI();
+// ── Config (ingresos por mes) ────────────────────────────────────
+function ingresosDeMes(mes) {
+    const i = config.ingresos[mes] || {};
+    return { segufer: i.segufer || 0, escuela: i.escuela || 0, otros: i.otros || 0 };
 }
+function totalIngresos(mes) {
+    const i = ingresosDeMes(mes);
+    return i.segufer + i.escuela + i.otros;
+}
+function cargarIngresosDelMes() {
+    const i = ingresosDeMes(config.mesReferencia);
+    document.getElementById('ingresoSegufer').value = i.segufer || '';
+    document.getElementById('ingresoEscuela').value = i.escuela || '';
+    document.getElementById('ingresoOtros').value = i.otros || '';
+}
+// Guarda lo que hay en los campos como ingresos del mes seleccionado
 function saveConfig() {
-    config.mesReferencia = document.getElementById('mesReferencia').value;
-    config.ingresoSegufer = parseFloat(document.getElementById('ingresoSegufer').value) || 0;
-    config.ingresoEscuela = parseFloat(document.getElementById('ingresoEscuela').value) || 0;
-    config.ingresoOtros = parseFloat(document.getElementById('ingresoOtros').value) || 0;
+    const seg = parseFloat(document.getElementById('ingresoSegufer').value) || 0;
+    const esc = parseFloat(document.getElementById('ingresoEscuela').value) || 0;
+    const otr = parseFloat(document.getElementById('ingresoOtros').value) || 0;
+    if (seg || esc || otr) config.ingresos[config.mesReferencia] = { segufer: seg, escuela: esc, otros: otr };
+    else delete config.ingresos[config.mesReferencia];
     localStorage.setItem('finanzas_v3_config', JSON.stringify(config));
+}
+function cambiarMes(nuevoMes) {
+    if (!nuevoMes) return;
+    saveConfig();                 // guarda los ingresos del mes que se deja
+    config.mesReferencia = nuevoMes;
+    document.getElementById('mesReferencia').value = nuevoMes;
+    cargarIngresosDelMes();       // carga los ingresos del mes nuevo
+    saveConfig();
+    actualizarUI();
+}
+function irAMesActual() {
+    cambiarMes(new Date().toISOString().substring(0, 7));
 }
 
 // ── Egreso vario ─────────────────────────────────────────────────
@@ -934,7 +978,7 @@ function fmt(n) { return new Intl.NumberFormat('es-AR', { style: 'currency', cur
 // ── UI ───────────────────────────────────────────────────────────
 function actualizarUI() {
     const mesRef = document.getElementById('mesReferencia').value;
-    const tI = config.ingresoSegufer + config.ingresoEscuela + config.ingresoOtros;
+    const tI = totalIngresos(mesRef);
     const filMes = transacciones.filter(t => t.mesImputacion === mesRef);
     const tE = filMes.reduce((a, t) => a + t.monto, 0);
     document.getElementById('ui-ingresos').innerText = fmt(tI);
@@ -976,7 +1020,7 @@ function actualizarUI() {
                 </td>
             </tr>`;
     });
-    updateChart(tI);
+    updateChart();
 }
 
 function editar(id) {
@@ -1001,25 +1045,24 @@ function confirmReset() {
 }
 
 // ── Gráfico ──────────────────────────────────────────────────────
-function updateChart(tI) {
+function updateChart() {
     const ctx = document.getElementById('mainChart').getContext('2d');
-    const mesIn = document.getElementById('mesReferencia').value;
-    const labels = Array.from({ length: chartRangeMonths }, (_, i) => sumarMeses(mesIn, i));
-    const dataEPuntual = labels.map(l =>
-        transacciones
-            .filter(t => t.mesImputacion === l && t.monto > 0 && t.cuota && t.cuota.endsWith('/1'))
-            .reduce((a, b) => a + b.monto, 0)
-    );
-    const dataECuotas = labels.map(l =>
-        transacciones
-            .filter(t => t.mesImputacion === l && t.monto > 0 && t.cuota && !t.cuota.endsWith('/1'))
-            .reduce((a, b) => a + b.monto, 0)
-    );
+    const labels = Array.from({ length: chartRangeMonths }, (_, i) => sumarMeses(config.mesReferencia, i));
+
+    // Egresos NETOS por mes: las devoluciones (montos negativos) restan
+    const dataEPuntual = labels.map(l => transacciones
+        .filter(t => t.mesImputacion === l && t.cuota && t.cuota.endsWith('/1'))
+        .reduce((a, b) => a + b.monto, 0));
+    const dataECuotas = labels.map(l => transacciones
+        .filter(t => t.mesImputacion === l && t.cuota && !t.cuota.endsWith('/1'))
+        .reduce((a, b) => a + b.monto, 0));
+
+    // Ingresos: solo en el mes al que pertenecen
+    const dataIngresos = labels.map(l => totalIngresos(l));
+
     const isDark = document.documentElement.classList.contains('dark');
     const tC = isDark ? '#94a3b8' : '#64748b';
     const gC = isDark ? 'rgba(51, 65, 85, 0.35)' : 'rgba(226, 232, 240, 0.8)';
-
-    // Paleta moderna Azul, Blanco y Negro
     const colorIngresos = isDark ? '#3b82f6' : '#2563eb';
     const colorCuotas = isDark ? '#f8fafc' : '#0f172a';
     const colorPuntuales = isDark ? '#60a5fa' : '#93c5fd';
@@ -1030,68 +1073,30 @@ function updateChart(tI) {
         data: {
             labels: labels.map(l => new Date(l + '-02').toLocaleString('es-AR', { month: 'short' }).toUpperCase()),
             datasets: [
-                { 
-                    label: 'Ingresos', 
-                    data: labels.map(() => tI), 
-                    backgroundColor: colorIngresos, 
-                    borderRadius: 6, 
-                    barPercentage: 0.75, 
-                    categoryPercentage: 0.55, 
-                    stack: 'ingresos' 
-                },
-                { 
-                    label: 'Gastos en cuotas', 
-                    data: dataECuotas, 
-                    backgroundColor: colorCuotas, 
-                    borderRadius: 0, 
-                    barPercentage: 0.75, 
-                    categoryPercentage: 0.55, 
-                    stack: 'egresos' 
-                },
-                { 
-                    label: 'Gastos puntuales', 
-                    data: dataEPuntual, 
-                    backgroundColor: colorPuntuales, 
-                    borderRadius: 6, 
-                    barPercentage: 0.75, 
-                    categoryPercentage: 0.55, 
-                    stack: 'egresos' 
-                }
+                { label: 'Ingresos', data: dataIngresos, backgroundColor: colorIngresos, borderRadius: 6, barPercentage: 0.75, categoryPercentage: 0.55, stack: 'ingresos' },
+                { label: 'Gastos en cuotas', data: dataECuotas, backgroundColor: colorCuotas, borderRadius: 0, barPercentage: 0.75, categoryPercentage: 0.55, stack: 'egresos' },
+                { label: 'Gastos puntuales', data: dataEPuntual, backgroundColor: colorPuntuales, borderRadius: 6, barPercentage: 0.75, categoryPercentage: 0.55, stack: 'egresos' }
             ]
         },
         options: {
-            responsive: true, 
+            responsive: true,
             maintainAspectRatio: false,
             scales: {
-                y: { 
-                    beginAtZero: true, 
-                    stacked: true, 
-                    grid: { color: gC, drawBorder: false }, 
-                    ticks: { 
-                        color: tC, 
-                        callback: v => fmt(v),
-                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 }
-                    } 
+                y: {
+                    beginAtZero: true, stacked: true,
+                    grid: { color: gC, drawBorder: false },
+                    ticks: { color: tC, callback: v => fmt(v), font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 } }
                 },
-                x: { 
-                    stacked: true, 
-                    grid: { display: false }, 
-                    ticks: { 
-                        color: tC,
-                        font: { family: "'Plus Jakarta Sans', sans-serif", weight: '600', size: 11 }
-                    } 
+                x: {
+                    stacked: true,
+                    grid: { display: false },
+                    ticks: { color: tC, font: { family: "'Plus Jakarta Sans', sans-serif", weight: '600', size: 11 } }
                 }
             },
             plugins: {
-                legend: { 
-                    position: 'top', 
-                    labels: { 
-                        color: tC, 
-                        usePointStyle: true, 
-                        pointStyle: 'circle',
-                        padding: 16,
-                        font: { family: "'Plus Jakarta Sans', sans-serif", weight: '600', size: 12 } 
-                    } 
+                legend: {
+                    position: 'top',
+                    labels: { color: tC, usePointStyle: true, pointStyle: 'circle', padding: 16, font: { family: "'Plus Jakarta Sans', sans-serif", weight: '600', size: 12 } }
                 },
                 tooltip: {
                     padding: 12,
@@ -1102,12 +1107,8 @@ function updateChart(tI) {
                     callbacks: {
                         label: c => `${c.dataset.label}: ${fmt(c.raw)}`,
                         footer: items => {
-                            const total = items
-                                .filter(i => i.datasetIndex >= 1)
-                                .reduce((a, i) => a + i.raw, 0);
-                            return items.some(i => i.datasetIndex >= 1)
-                                ? `Total egresos: ${fmt(total)}`
-                                : '';
+                            const total = items.filter(i => i.datasetIndex >= 1).reduce((a, i) => a + i.raw, 0);
+                            return items.some(i => i.datasetIndex >= 1) ? `Total egresos: ${fmt(total)}` : '';
                         }
                     }
                 }
