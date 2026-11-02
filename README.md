@@ -19,6 +19,8 @@ Gestor de finanzas personales en un único archivo HTML, sin instalación ni ser
 - **Editar, duplicar y borrar**: al editar una cuota podés aplicar el cambio a todas las cuotas del consumo. Al borrar un consumo en cuotas podés eliminar todas sus cuotas.
 - **Backup e importación**: exporta e importa un JSON con movimientos e ingresos (modo fusionar o reemplazar).
 - **Exportar Excel**: proyección de cuotas y gastos mensuales por mes.
+- **Contraseña de la app**: cifra los datos guardados en el navegador. Al abrir la app pide la contraseña. Se activa, cambia o quita desde el botón **Backup**.
+- **Backup cifrado**: al exportar el JSON se puede poner una contraseña. Sin ella, el archivo no se puede leer.
 - **Modo oscuro**.
 
 ## Estructura del repositorio
@@ -37,6 +39,13 @@ Formato de versión: `MAYOR.MENOR.PARCHE`.
 La versión se muestra junto al título de la app.
 
 ### Registro de cambios
+
+#### 4.3.0
+- **Contraseña de la app**: los datos del navegador se guardan cifrados (AES-GCM 256 bits, clave derivada con PBKDF2). Al abrir la app pide la contraseña.
+- **Bloquear ahora**: cierra la sesión y vuelve a pedir la contraseña.
+- **Backup cifrado**: el JSON exportado puede cifrarse con contraseña. Al importarlo se pide la misma contraseña.
+- Si no se activa contraseña, todo funciona como antes. Los backups sin cifrar siguen siendo importables.
+- Se quitó el archivo duplicado `FinanzasPersonales.html`. La app es solo `index.html`.
 
 #### 4.2.0
 - **Editar en ventana**: reemplaza el cuadro de texto por un formulario con detalle, monto y categoría. Opción para aplicar el cambio a todas las cuotas del consumo.
