@@ -40,11 +40,6 @@ La versión se muestra junto al título de la app.
 
 ### Registro de cambios
 
-#### 4.5.0
-- **Respaldo automático en carpeta**: elegís una carpeta una vez (por ejemplo la de Google Drive para escritorio). Cada vez que se guardan datos, la app escribe ahí el backup cifrado, con un nombre fijo. Google Drive lo sube solo y guarda sus versiones anteriores.
-- Requiere la contraseña de la app activada. Funciona en Chrome y Edge.
-- Al reabrir la app, si el navegador pide confirmar el acceso, usá el botón **Reconectar**.
-
 #### 4.4.0
 - **Intentos de desbloqueo**: la pantalla de contraseña muestra cuántos intentos quedan. Tras 5 fallos, espera antes del siguiente intento: 1 minuto, luego 2, 4, etc., hasta 30 minutos. La espera se mantiene al recargar.
 - No se borran datos por intentos fallidos.
