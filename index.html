@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Finanzas Pro - Local Edition v4.3.0</title>
+    <title>Gestor de Finanzas Pro - Local Edition v4.4.0</title>
     <link rel="stylesheet" href="vendor/fonts.css">
     <link rel="stylesheet" href="vendor/tailwind.css">
     <script src="vendor/chart.umd.min.js"></script>
@@ -410,7 +410,7 @@
                         Finanzas <span class="text-blue-600 dark:text-blue-400">Local</span>
                     </h1>
                     <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800 tracking-wider">PRO</span>
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.3.0</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.4.0</span>
                 </div>
                 <p class="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide mt-0.5">Gestión Manual de Consumos (Ciudad & Galicia)</p>
             </div>
@@ -615,7 +615,7 @@
 
 <script>
 // ── Versión de la app ────────────────────────────────────────────
-const APP_VERSION = '4.3.0';
+const APP_VERSION = '4.4.0';
 
 // ── PDF.js setup ────────────────────────────────────────────────
 if (window['pdfjs-dist/build/pdf']) {
@@ -906,6 +906,7 @@ async function quitarClave() {
     await colaPersistencia;
     localStorage.removeItem('finanzas_v3_cifrado');
     localStorage.removeItem('finanzas_v3_seguridad');
+    localStorage.removeItem('finanzas_v3_intentos');
     claveActiva = null;
     persistir();
     actualizarSeguridadUI();
@@ -919,7 +920,8 @@ async function bloquearAhora() {
 // ── Pantalla de bloqueo ──────────────────────────────────────────
 function mostrarBloqueo() {
     document.getElementById('pantalla-bloqueo').style.display = 'flex';
-    document.getElementById('bloqueo-clave').focus();
+    refrescarBloqueo();
+    if (!document.getElementById('bloqueo-clave').disabled) document.getElementById('bloqueo-clave').focus();
 }
 async function desbloquear(clave) {
     const s = configSeguridad();
@@ -931,22 +933,70 @@ async function desbloquear(clave) {
     claveActiva = { key, salt };
     aplicarEstado(estado.transacciones, estado.config);
 }
+// ── Intentos fallidos de desbloqueo ──────────────────────────────
+// Se guardan en el navegador. Tras 5 fallos, espera progresiva: 1, 2, 4... minutos (máximo 30).
+const INTENTOS_MAX = 5;
+const ESPERA_MAX_SEG = 1800;
+let bloqueoTimer = null;
+function estadoIntentos() {
+    try { return JSON.parse(localStorage.getItem('finanzas_v3_intentos')) || { fallos: 0, hasta: 0 }; }
+    catch { return { fallos: 0, hasta: 0 }; }
+}
+function guardarIntentos(estado) {
+    try { localStorage.setItem('finanzas_v3_intentos', JSON.stringify(estado)); } catch {}
+}
+function formatoEspera(seg) {
+    return seg < 60 ? `${seg} s` : `${Math.ceil(seg / 60)} min`;
+}
+// Muestra el estado del bloqueo: espera activa, intentos restantes o pantalla limpia
+function refrescarBloqueo() {
+    const e = estadoIntentos();
+    const error = document.getElementById('bloqueo-error');
+    const btn = document.getElementById('bloqueo-ok');
+    const input = document.getElementById('bloqueo-clave');
+    clearInterval(bloqueoTimer);
+    if (e.hasta > Date.now()) {
+        input.disabled = true; btn.disabled = true;
+        const pintar = () => {
+            const r = Math.ceil((e.hasta - Date.now()) / 1000);
+            if (r <= 0) { clearInterval(bloqueoTimer); refrescarBloqueo(); return; }
+            error.textContent = `Demasiados intentos. Esperá ${formatoEspera(r)}.`;
+            error.classList.remove('hidden');
+        };
+        pintar();
+        bloqueoTimer = setInterval(pintar, 1000);
+        return;
+    }
+    input.disabled = false; btn.disabled = false;
+    btn.textContent = 'Desbloquear';
+    if (e.fallos > 0 && e.fallos < INTENTOS_MAX) {
+        error.textContent = `Contraseña incorrecta. Te quedan ${INTENTOS_MAX - e.fallos} intentos.`;
+        error.classList.remove('hidden');
+    } else {
+        error.classList.add('hidden');
+    }
+}
 document.getElementById('form-bloqueo').addEventListener('submit', async e => {
     e.preventDefault();
     const input = document.getElementById('bloqueo-clave');
-    const error = document.getElementById('bloqueo-error');
     const btn = document.getElementById('bloqueo-ok');
     btn.disabled = true; btn.textContent = 'Verificando...';
     try {
         await desbloquear(input.value);
-        error.classList.add('hidden');
     } catch (err) {
-        error.textContent = 'Contraseña incorrecta.';
-        error.classList.remove('hidden');
-        input.select();
-        btn.disabled = false; btn.textContent = 'Desbloquear';
+        const estado = estadoIntentos();
+        estado.fallos += 1;
+        if (estado.fallos >= INTENTOS_MAX) {
+            const espera = Math.min(60 * 2 ** (estado.fallos - INTENTOS_MAX), ESPERA_MAX_SEG);
+            estado.hasta = Date.now() + espera * 1000;
+        }
+        guardarIntentos(estado);
+        input.value = '';
+        refrescarBloqueo();
+        if (!input.disabled) input.focus();
         return;
     }
+    try { localStorage.removeItem('finanzas_v3_intentos'); } catch {}
     document.getElementById('pantalla-bloqueo').style.display = 'none';
     iniciarApp();
 });

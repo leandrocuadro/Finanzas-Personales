@@ -40,6 +40,10 @@ La versión se muestra junto al título de la app.
 
 ### Registro de cambios
 
+#### 4.4.0
+- **Intentos de desbloqueo**: la pantalla de contraseña muestra cuántos intentos quedan. Tras 5 fallos, espera antes del siguiente intento: 1 minuto, luego 2, 4, etc., hasta 30 minutos. La espera se mantiene al recargar.
+- No se borran datos por intentos fallidos.
+
 #### 4.3.0
 - **Contraseña de la app**: los datos del navegador se guardan cifrados (AES-GCM 256 bits, clave derivada con PBKDF2). Al abrir la app pide la contraseña.
 - **Bloquear ahora**: cierra la sesión y vuelve a pedir la contraseña.
