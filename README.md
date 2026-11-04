@@ -40,6 +40,16 @@ La versión se muestra junto al título de la app.
 
 ### Registro de cambios
 
+#### 4.7.0
+- **Filtro de categorías con selección múltiple**: el desplegable de categorías tiene casillas. Podés marcar varias (por ejemplo Servicios + Suscripciones) y la tabla muestra los movimientos de cualquiera de ellas. "Todas las categorías" limpia la selección.
+
+#### 4.6.0
+- **Archivo de respaldo vinculado** (Chrome o Edge de escritorio): el botón **Vincular archivo de respaldo** guarda `finanzas.json` en una carpeta elegida por vos. Cada alta, edición o baja se escribe en ese archivo sin generar descargas. Al recargar, el vínculo se recuerda y pide permiso con un clic.
+- Si hay una contraseña activa, el archivo también se guarda cifrado.
+- Al vincular un archivo que ya tiene datos distintos a los de la app, la app pregunta cuál conservar. Nunca sobrescribe un archivo con datos distintos sin preguntar.
+- **Exportar JSON** y **Importar JSON** siempre están disponibles como alternativa manual (por ejemplo, en navegadores móviles).
+- Los backups incluyen las categorías propias.
+
 #### 4.5.0
 - **Modo oscuro corregido**: el botón no hacía nada porque faltaba la función que cambia el tema. Ahora la elección se recuerda al recargar. También se corrigieron fondos que quedaban claros.
 - **Categorías propias**: se pueden agregar categorías desde el panel izquierdo (sección "Categorías").
