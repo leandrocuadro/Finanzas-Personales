@@ -40,6 +40,13 @@ La versión se muestra junto al título de la app.
 
 ### Registro de cambios
 
+#### 4.5.0
+- **Modo oscuro corregido**: el botón no hacía nada porque faltaba la función que cambia el tema. Ahora la elección se recuerda al recargar. También se corrigieron fondos que quedaban claros.
+- **Categorías propias**: se pueden agregar categorías desde el panel izquierdo (sección "Categorías").
+- **Gastos mensuales desde la edición**: al editar un pago único se puede marcar "Se repite todos los meses". Desmarcarlo en un gasto mensual lo deja de repetir desde el mes que estás viendo.
+- **Ingresos con formato**: SEGUFER, ESCUELA y OTROS muestran separador de miles y centavos con coma (ej: 1.500.000,00).
+- El título pasa a ser "Gestión de Finanzas Personales".
+
 #### 4.4.0
 - **Intentos de desbloqueo**: la pantalla de contraseña muestra cuántos intentos quedan. Tras 5 fallos, espera antes del siguiente intento: 1 minuto, luego 2, 4, etc., hasta 30 minutos. La espera se mantiene al recargar.
 - No se borran datos por intentos fallidos.

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Finanzas Pro - Local Edition v4.4.0</title>
+    <title>Gestor de Finanzas Pro - Local Edition v4.5.0</title>
     <link rel="stylesheet" href="vendor/fonts.css">
     <link rel="stylesheet" href="vendor/tailwind.css">
     <script src="vendor/chart.umd.min.js"></script>
@@ -113,6 +113,10 @@
         html.dark .bg-slate-50 { background-color: #0b1120; }
         html.dark .bg-slate-100 { background-color: #1e293b; }
         html.dark .bg-white { background-color: #0f172a; color: #f8fafc; }
+        /* Fondos con opacidad que quedaban claros en modo oscuro */
+        html.dark .bg-slate-50\/40, html.dark .bg-slate-50\/50, html.dark .bg-slate-50\/70,
+        html.dark .bg-slate-50\/80, html.dark .bg-slate-100\/80 { background-color: #0b1120; }
+        html.dark .bg-blue-50 { background-color: rgba(30, 58, 138, 0.25); }
         html.dark .border-b, html.dark .border-t, html.dark .divide-y > :not([hidden]) ~ :not([hidden]) { border-color: #1e293b; }
         html.dark input, html.dark select, html.dark textarea {
             background-color: #0b1120;
@@ -210,6 +214,10 @@
         .preview-row-dev { background: #fef9c3; }
         html.dark .preview-row-dev { background: #422006; }
     </style>
+    <script>
+        // Aplica el tema guardado antes de pintar la página (evita parpadeo)
+        if (localStorage.getItem('finanzas_v3_theme') === 'dark') document.documentElement.classList.add('dark');
+    </script>
 </head>
 <body class="p-4 md:p-8 min-h-screen">
 
@@ -334,6 +342,13 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">Cambia detalle, monto y categoría en cada mes del consumo.</p>
                 </div>
             </label>
+            <label id="edit-mensual-wrap" class="hidden flex items-start gap-3 cursor-pointer p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+                <input type="checkbox" id="edit-mensual" class="mt-0.5 accent-blue-600 w-4 h-4">
+                <div>
+                    <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Se repite todos los meses</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">Aparece en cada mes desde el de imputación. Si lo desmarcás, deja de repetirse desde el mes que estás viendo.</p>
+                </div>
+            </label>
         </div>
         <div class="flex gap-3 mt-8">
             <button onclick="cerrarModal('modal-editar')" class="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cancelar</button>
@@ -410,9 +425,9 @@
                         Finanzas <span class="text-blue-600 dark:text-blue-400">Local</span>
                     </h1>
                     <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800 tracking-wider">PRO</span>
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.4.0</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.5.0</span>
                 </div>
-                <p class="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide mt-0.5">Gestión Manual de Consumos (Ciudad & Galicia)</p>
+                <p class="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide mt-0.5">Gestión de Finanzas Personales</p>
             </div>
         </div>
         <div class="flex gap-2 flex-wrap justify-end">
@@ -423,7 +438,7 @@
                 <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l4-4m0 0l4 4m-4-4v12"/></svg>Restaurar
             </button>
             <button onclick="toggleDarkMode()" class="bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-750 transition-all text-xs font-bold flex items-center gap-2 shadow-sm active:scale-95">
-                <svg class="w-4 h-4 text-amber-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>Modo Oscuro
+                <svg class="w-4 h-4 text-amber-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg><span id="btn-dark-label">Modo Oscuro</span>
             </button>
             <button onclick="confirmReset()" class="bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400 border border-red-200/80 dark:border-red-900/50 px-3.5 py-2.5 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/60 transition-all text-xs font-bold active:scale-95">Borrar Todo</button>
         </div>
@@ -498,9 +513,9 @@
             <div class="space-y-3 pt-2">
                 <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Configurar Ingresos del Mes</p>
                 <div class="space-y-2">
-                    <input type="number" id="ingresoSegufer" placeholder="SEGUFER SA" oninput="saveConfig(); actualizarUI();" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
-                    <input type="number" id="ingresoEscuela" placeholder="ESCUELA" oninput="saveConfig(); actualizarUI();" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
-                    <input type="number" id="ingresoOtros" placeholder="OTROS INGRESOS" oninput="saveConfig(); actualizarUI();" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+                    <input type="text" inputmode="decimal" id="ingresoSegufer" placeholder="SEGUFER SA" oninput="saveConfig(); actualizarUI();" onblur="formatearInput(this); saveConfig(); actualizarUI();" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition tabular-nums text-right">
+                    <input type="text" inputmode="decimal" id="ingresoEscuela" placeholder="ESCUELA" oninput="saveConfig(); actualizarUI();" onblur="formatearInput(this); saveConfig(); actualizarUI();" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition tabular-nums text-right">
+                    <input type="text" inputmode="decimal" id="ingresoOtros" placeholder="OTROS INGRESOS" oninput="saveConfig(); actualizarUI();" onblur="formatearInput(this); saveConfig(); actualizarUI();" class="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition tabular-nums text-right">
                 </div>
             </div>
             <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -514,6 +529,13 @@
                         Se repite todos los meses
                     </label>
                     <button onclick="agregarEgresoVario()" class="w-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white py-2.5 rounded-xl font-bold shadow-sm transition-all text-xs uppercase tracking-wider active:scale-[0.98]">Agregar Gasto</button>
+                </div>
+            </div>
+            <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Categorías</p>
+                <div class="flex gap-2">
+                    <input type="text" id="nuevaCategoria" placeholder="Nueva categoría" onkeydown="if(event.key==='Enter') agregarCategoria()" class="flex-1 min-w-0 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition">
+                    <button onclick="agregarCategoria()" class="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-3.5 rounded-xl font-bold text-xs transition-all active:scale-95">+</button>
                 </div>
             </div>
             <div class="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -615,7 +637,7 @@
 
 <script>
 // ── Versión de la app ────────────────────────────────────────────
-const APP_VERSION = '4.4.0';
+const APP_VERSION = '4.5.0';
 
 // ── PDF.js setup ────────────────────────────────────────────────
 if (window['pdfjs-dist/build/pdf']) {
@@ -628,8 +650,13 @@ window._pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
 
 <script>
 // ── Categorías ───────────────────────────────────────────────────
-const CATEGORIAS = ['Sin categoría', 'Supermercado', 'Comida', 'Transporte', 'Salud', 'Servicios',
+const CATEGORIAS_BASE = ['Sin categoría', 'Supermercado', 'Comida', 'Transporte', 'Salud', 'Servicios',
     'Suscripciones', 'Indumentaria', 'Entretenimiento', 'Hogar', 'Educación', 'Otros'];
+// Base + categorías que el usuario agregó (se guardan en config.categorias)
+function categoriasDisponibles() {
+    const extras = ((config && config.categorias) || []).filter(c => !CATEGORIAS_BASE.includes(c));
+    return [...CATEGORIAS_BASE, ...extras];
+}
 // Palabras clave para sugerir la categoría a partir del detalle del consumo
 const PALABRAS_CATEGORIA = [
     [/SUPERMERCADO|CARREFOUR|\bCOTO\b|JUMBO|\bVEA\b|\bDISCO\b|MAXICONSUMO|CHANGOMAS/i, 'Supermercado'],
@@ -649,7 +676,7 @@ function sugerirCategoria(detalle) {
     return hit ? hit[1] : 'Sin categoría';
 }
 function opcionesCategoria(seleccion) {
-    return CATEGORIAS.map(c => `<option value="${c}" ${c === seleccion ? 'selected' : ''}>${c}</option>`).join('');
+    return categoriasDisponibles().map(c => `<option value="${c}" ${c === seleccion ? 'selected' : ''}>${c}</option>`).join('');
 }
 
 // ── Fechas (siempre en hora local, sin UTC) ──────────────────────
@@ -734,6 +761,7 @@ window.onload = () => {
 };
 
 function iniciarApp() {
+    actualizarLabelTema();
     poblarCategorias();
     document.getElementById('mesReferencia').value = config.mesReferencia;
     cargarIngresosDelMes();
@@ -743,11 +771,61 @@ function iniciarApp() {
 }
 
 function poblarCategorias() {
-    document.getElementById('egresoVarioCategoria').innerHTML = opcionesCategoria('Sin categoría');
+    const evActual = document.getElementById('egresoVarioCategoria').value || 'Sin categoría';
+    const fcActual = document.getElementById('filtroCategoria').value || 'TODAS';
+    document.getElementById('egresoVarioCategoria').innerHTML = opcionesCategoria(evActual);
     document.getElementById('edit-categoria').innerHTML = opcionesCategoria('Sin categoría');
     document.getElementById('filtroCategoria').innerHTML =
         '<option value="TODAS">Todas las categorías</option>' +
-        CATEGORIAS.map(c => `<option value="${c}">${c}</option>`).join('');
+        categoriasDisponibles().map(c => `<option value="${c}">${c}</option>`).join('');
+    document.getElementById('filtroCategoria').value = fcActual;
+}
+
+// ── Modo oscuro ──────────────────────────────────────────────────
+function actualizarLabelTema() {
+    const el = document.getElementById('btn-dark-label');
+    if (el) el.textContent = document.documentElement.classList.contains('dark') ? 'Modo Claro' : 'Modo Oscuro';
+}
+function toggleDarkMode() {
+    const oscuro = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', oscuro);
+    localStorage.setItem('finanzas_v3_theme', oscuro ? 'dark' : 'light');
+    actualizarLabelTema();
+    if (chartInstance) actualizarUI();
+}
+
+// ── Formato numérico (es-AR) ─────────────────────────────────────
+// Acepta "1.500.000,50", "1500000,5" o "1500000"; el punto es separador de miles.
+function parseNumAR(s) {
+    if (s === null || s === undefined) return 0;
+    let v = String(s).trim();
+    if (!v) return 0;
+    v = v.includes(',') ? v.replace(/\./g, '').replace(',', '.') : v.replace(/\./g, '');
+    const n = parseFloat(v.replace(/[^\d.\-]/g, ''));
+    return isNaN(n) ? 0 : n;
+}
+function fmtNum(n) {
+    return new Intl.NumberFormat('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+}
+function formatearInput(el) {
+    const n = parseNumAR(el.value);
+    el.value = n ? fmtNum(n) : '';
+}
+
+// ── Categorías propias: alta ─────────────────────────────────────
+function agregarCategoria() {
+    const inp = document.getElementById('nuevaCategoria');
+    let nombre = inp.value.trim().replace(/\s+/g, ' ');
+    if (!nombre) return showToast('Escribí un nombre de categoría.', false);
+    nombre = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+    if (categoriasDisponibles().some(c => c.toLowerCase() === nombre.toLowerCase())) {
+        return showToast('Esa categoría ya existe.', false);
+    }
+    config.categorias = [...(config.categorias || []), nombre];
+    persistir();
+    inp.value = '';
+    poblarCategorias();
+    showToast(`Categoría "${nombre}" agregada.`);
 }
 
 // ── Toast ────────────────────────────────────────────────────────
@@ -1335,15 +1413,15 @@ function totalIngresos(mes) {
 }
 function cargarIngresosDelMes() {
     const i = ingresosDeMes(config.mesReferencia);
-    document.getElementById('ingresoSegufer').value = i.segufer || '';
-    document.getElementById('ingresoEscuela').value = i.escuela || '';
-    document.getElementById('ingresoOtros').value = i.otros || '';
+    document.getElementById('ingresoSegufer').value = i.segufer ? fmtNum(i.segufer) : '';
+    document.getElementById('ingresoEscuela').value = i.escuela ? fmtNum(i.escuela) : '';
+    document.getElementById('ingresoOtros').value = i.otros ? fmtNum(i.otros) : '';
 }
 // Guarda lo que hay en los campos como ingresos del mes seleccionado
 function saveConfig() {
-    const seg = parseFloat(document.getElementById('ingresoSegufer').value) || 0;
-    const esc = parseFloat(document.getElementById('ingresoEscuela').value) || 0;
-    const otr = parseFloat(document.getElementById('ingresoOtros').value) || 0;
+    const seg = parseNumAR(document.getElementById('ingresoSegufer').value);
+    const esc = parseNumAR(document.getElementById('ingresoEscuela').value);
+    const otr = parseNumAR(document.getElementById('ingresoOtros').value);
     if (seg || esc || otr) config.ingresos[config.mesReferencia] = { segufer: seg, escuela: esc, otros: otr };
     else delete config.ingresos[config.mesReferencia];
     persistir();
@@ -1496,6 +1574,10 @@ function editar(id) {
     document.getElementById('edit-categoria').innerHTML = opcionesCategoria(base.categoria);
     document.getElementById('edit-todas').checked = true;
     document.getElementById('edit-todas-wrap').classList.toggle('hidden', !puedeAplicarATodas);
+    // Frecuencia: solo para pagos únicos (cuota 1/1) o gastos ya mensuales
+    const puedeMensual = !!base.recurrente || base.cuota === '1/1';
+    document.getElementById('edit-mensual').checked = !!base.recurrente;
+    document.getElementById('edit-mensual-wrap').classList.toggle('hidden', !puedeMensual);
     abrirModal('modal-editar');
 }
 function guardarEdicion() {
@@ -1509,6 +1591,19 @@ function guardarEdicion() {
         && document.getElementById('edit-todas').checked;
     const destinos = aplicarATodas ? transacciones.filter(x => grupoDe(x) === grupoDe(base)) : [base];
     destinos.forEach(x => { x.detalle = det.toUpperCase(); x.monto = monto; x.categoria = categoria; });
+    // Frecuencia mensual (solo si el control estaba visible)
+    if (!document.getElementById('edit-mensual-wrap').classList.contains('hidden')) {
+        const mensual = document.getElementById('edit-mensual').checked;
+        if (mensual && !base.recurrente) {
+            base.recurrente = true;
+            delete base.hastaMes;
+        } else if (!mensual && base.recurrente) {
+            const mesRef = document.getElementById('mesReferencia').value;
+            const previo = sumarMeses(mesRef, -1);
+            if (previo < base.mesImputacion) transacciones = transacciones.filter(x => x !== base);
+            else base.hastaMes = previo;
+        }
+    }
     guardarDatos();
     cerrarModal('modal-editar');
     actualizarUI();
