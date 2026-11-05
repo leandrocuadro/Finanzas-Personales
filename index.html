@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Finanzas Pro - Local Edition v4.9.0</title>
+    <title>Gestor de Finanzas Pro - Local Edition v4.9.1</title>
     <link rel="stylesheet" href="vendor/fonts.css">
     <link rel="stylesheet" href="vendor/tailwind.css">
     <script src="vendor/chart.umd.min.js"></script>
@@ -462,7 +462,7 @@
                         Finanzas <span class="text-blue-600 dark:text-blue-400">Local</span>
                     </h1>
                     <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800 tracking-wider">PRO</span>
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.9.0</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.9.1</span>
                 </div>
                 <p class="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide mt-0.5">Gestión de Finanzas Personales</p>
             </div>
@@ -726,7 +726,7 @@
 
 <script>
 // ── Versión de la app ────────────────────────────────────────────
-const APP_VERSION = '4.9.0';
+const APP_VERSION = '4.9.1';
 
 // ── PDF.js setup ────────────────────────────────────────────────
 if (window['pdfjs-dist/build/pdf']) {
@@ -765,7 +765,7 @@ function sugerirCategoria(detalle) {
     return hit ? hit[1] : 'Sin categoría';
 }
 function opcionesCategoria(seleccion) {
-    return categoriasDisponibles().map(c => `<option value="${c}" ${c === seleccion ? 'selected' : ''}>${c}</option>`).join('');
+    return categoriasDisponibles().map(c => `<option value="${escHtml(c)}" ${c === seleccion ? 'selected' : ''}>${escHtml(c)}</option>`).join('');
 }
 
 // ── Fechas (siempre en hora local, sin UTC) ──────────────────────
@@ -844,7 +844,7 @@ let previewItems = []; // items pendientes de confirmar
 let editandoId = null;  // id del movimiento abierto en el modal de edición
 
 window.onload = () => {
-    if (sinNavegador) { aplicarEstado(null, null); iniciarApp(); return; }
+    if (sinNavegador) { aplicarEstado(null, null); firmaExportada = firmaLocal(); iniciarApp(); return; }
     if (cifradoActivado()) { mostrarBloqueo(); return; }
     aplicarEstado(JSON.parse(localStorage.getItem('finanzas_v3_data')), JSON.parse(localStorage.getItem('finanzas_v3_config')));
     iniciarApp();
@@ -871,7 +871,7 @@ function poblarCategorias() {
     const ordenadas = [...disponibles].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
     document.getElementById('filtroCategoriaOpciones').innerHTML = ordenadas.map(c => `
         <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <input type="checkbox" value="${c}" ${categoriasFiltro.has(c) ? 'checked' : ''} onchange="cambiarFiltroCategoria(this)" class="accent-blue-600 w-4 h-4"> ${c}
+            <input type="checkbox" value="${escHtml(c)}" ${categoriasFiltro.has(c) ? 'checked' : ''} onchange="cambiarFiltroCategoria(this)" class="accent-blue-600 w-4 h-4"> ${escHtml(c)}
         </label>`).join('');
     actualizarTextoFiltroCategoria();
 }
@@ -1049,7 +1049,7 @@ function cifradoActivado() { const s = configSeguridad(); return !!(s && s.activ
 // Guarda el estado. Sin contraseña: en texto plano (como antes). Con contraseña: cifrado.
 // Las escrituras cifradas se encadenan para que siempre quede el último estado.
 function persistir() {
-    if (sinNavegador) { cambiosSinExportar = true; return; }
+    if (sinNavegador) return;
     if (!claveActiva) {
         localStorage.setItem('finanzas_v3_data', JSON.stringify(transacciones));
         localStorage.setItem('finanzas_v3_config', JSON.stringify(config));
@@ -1245,7 +1245,7 @@ document.getElementById('form-bloqueo').addEventListener('submit', async e => {
 
 // ── Backup JSON ──────────────────────────────────────────────────
 function descargarArchivo(contenido, nombre) {
-    cambiosSinExportar = false;
+    firmaExportada = firmaLocal();
     const blob = new Blob([contenido], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1287,7 +1287,9 @@ async function exportarJSON() {
 }
 function ejecutarImport(event) {
     cerrarModal('modal-backup');
-    const file = event.target.files[0]; if (!file) return;
+    const file = event.target.files[0];
+    event.target.value = '';   // permite volver a elegir el mismo archivo
+    if (!file) return;
     const mode = document.querySelector('input[name="importMode"]:checked').value;
     const reader = new FileReader();
     reader.onload = async e => {
@@ -1305,6 +1307,7 @@ function ejecutarImport(event) {
             }
             if (!parsed.transacciones || !Array.isArray(parsed.transacciones)) throw new Error('Formato inválido.');
             const entrantes = parsed.transacciones.map(normalizarMovimiento);
+            const estabaVacia = !transacciones.length && !Object.keys(config.ingresos || {}).length;
             if (mode === 'replace') {
                 transacciones = entrantes;
                 if (parsed.ingresos) config.ingresos = parsed.ingresos;
@@ -1318,6 +1321,8 @@ function ejecutarImport(event) {
                 if (parsed.categorias) config.categorias = [...new Set([...(config.categorias || []), ...parsed.categorias])];
                 showToast(`Fusionado: ${nuevas.length} nuevas, ${entrantes.length - nuevas.length} duplicadas omitidas.`);
             }
+            // Sin guardado en navegador: lo que se acaba de importar ya está en el archivo, no es un cambio pendiente
+            if (sinNavegador && (mode === 'replace' || estabaVacia)) firmaExportada = firmaLocal();
             guardarDatos();
             poblarCategorias();
             cargarIngresosDelMes();
@@ -1339,7 +1344,11 @@ function ejecutarImport(event) {
 // ═══════════════════════════════════════════════════════════════
 const CLAVE_SIN_NAVEGADOR = 'finanzas_v3_sin_navegador';
 let sinNavegador = localStorage.getItem(CLAVE_SIN_NAVEGADOR) === '1';
-let cambiosSinExportar = false;   // hay cambios que todavía no están en un JSON exportado
+// Claves donde la app guarda datos (no incluye la marca de este modo ni el tema)
+const CLAVES_DATOS = ['finanzas_v3_data', 'finanzas_v3_config', 'finanzas_v3_cifrado', 'finanzas_v3_seguridad', 'finanzas_v3_intentos'];
+// Firma de los datos en el último JSON exportado o importado. Si la firma actual es distinta, hay cambios sin exportar.
+let firmaExportada = null;
+function hayCambiosSinExportar() { return firmaExportada !== null && firmaLocal() !== firmaExportada; }
 
 function actualizarSinNavegadorUI() {
     const txt = document.getElementById('sinnav-estado');
@@ -1361,8 +1370,7 @@ async function cambiarModoNavegador() {
         await colaArchivo;
         fileHandle = null; archivoListo = false; errorArchivo = null;
         await borrarHandleDB();
-        ['finanzas_v3_data', 'finanzas_v3_config', 'finanzas_v3_cifrado', 'finanzas_v3_seguridad', 'finanzas_v3_intentos']
-            .forEach(k => { try { localStorage.removeItem(k); } catch {} });
+        CLAVES_DATOS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
         claveActiva = null;
         localStorage.setItem(CLAVE_SIN_NAVEGADOR, '1');
         location.reload();
@@ -1370,7 +1378,6 @@ async function cambiarModoNavegador() {
         if (!confirm('Los datos de la app se van a guardar en este navegador.\n\n¿Continuar?')) return;
         localStorage.removeItem(CLAVE_SIN_NAVEGADOR);
         sinNavegador = false;
-        cambiosSinExportar = false;
         persistir();
         location.reload();
     }
@@ -1378,7 +1385,7 @@ async function cambiarModoNavegador() {
 
 // Aviso si se intenta cerrar la pestaña con cambios que no se exportaron
 window.addEventListener('beforeunload', e => {
-    if (sinNavegador && cambiosSinExportar) { e.preventDefault(); e.returnValue = ''; }
+    if (sinNavegador && hayCambiosSinExportar()) { e.preventDefault(); e.returnValue = ''; }
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -1971,7 +1978,10 @@ function saveConfig() {
     persistir();
 }
 function cambiarMes(nuevoMes) {
-    if (!nuevoMes) return;
+    if (!nuevoMes) {   // el campo quedó vacío: se vuelve al mes que estaba seleccionado
+        document.getElementById('mesReferencia').value = config.mesReferencia;
+        return;
+    }
     saveConfig();                 // guarda los ingresos del mes que se deja
     config.mesReferencia = nuevoMes;
     document.getElementById('mesReferencia').value = nuevoMes;
@@ -1995,6 +2005,7 @@ function agregarEgresoVario() {
     const mesRef = document.getElementById('mesReferencia').value;
     const categoria = document.getElementById('egresoVarioCategoria').value;
     const recurrente = document.getElementById('egresoVarioRecurrente').checked;
+    if (!mesRef) return alert('Seleccioná el mes de imputación.');
     if (!detalle || isNaN(monto) || monto <= 0) return alert('Ingrese un detalle y un monto válido mayor a 0.');
     const ts = Date.now();
     transacciones.push({
@@ -2107,22 +2118,22 @@ function actualizarUI() {
             : '';
         tbody.innerHTML += `
             <tr class="hover:bg-blue-50/40 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800/80">
-                <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider ${badge}">${t.banco}</span></td>
+                <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider ${badge}">${escHtml(t.banco)}</span></td>
                 <td class="p-4">
-                    <div class="font-semibold text-slate-800 dark:text-slate-200">${t.detalle}</div>
-                    <div class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-0.5">${t.categoria}${etiqueta}</div>
+                    <div class="font-semibold text-slate-800 dark:text-slate-200">${escHtml(t.detalle)}</div>
+                    <div class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mt-0.5">${escHtml(t.categoria)}${etiqueta}</div>
                 </td>
-                <td class="p-4 text-center text-slate-400 dark:text-slate-500 font-mono text-xs font-semibold">${t.recurrente ? '—' : t.cuota}</td>
+                <td class="p-4 text-center text-slate-400 dark:text-slate-500 font-mono text-xs font-semibold">${t.recurrente ? '—' : escHtml(t.cuota)}</td>
                 <td class="p-4 text-right font-bold tabular-nums text-slate-900 dark:text-slate-100 ${t.monto < 0 ? '!text-emerald-600 dark:!text-emerald-400' : ''}">${fmt(t.monto)}</td>
                 <td class="p-4 text-center">
                     <div class="flex justify-center items-center gap-1.5">
-                        <button onclick="editar('${t.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 transition" title="Editar">
+                        <button data-id="${escHtml(t.id)}" onclick="editar(this.dataset.id)" class="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 transition" title="Editar">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                         </button>
-                        <button onclick="duplicar('${t.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 transition" title="Duplicar">
+                        <button data-id="${escHtml(t.id)}" onclick="duplicar(this.dataset.id)" class="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 transition" title="Duplicar">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                         </button>
-                        <button onclick="borrar('${t.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 transition" title="Borrar">
+                        <button data-id="${escHtml(t.id)}" onclick="borrar(this.dataset.id)" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 transition" title="Borrar">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
@@ -2168,9 +2179,9 @@ function renderCuotasPendientes() {
     document.getElementById('cuotas-body').innerHTML = filas.length
         ? filas.map(f => `
             <tr class="hover:bg-blue-50/40 dark:hover:bg-slate-800/50 transition-colors">
-                <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider ${f.banco === 'GALICIA' ? 'badge-galicia' : f.banco === 'CIUDAD' ? 'badge-ciudad' : 'badge-otros'}">${f.banco}</span></td>
+                <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider ${f.banco === 'GALICIA' ? 'badge-galicia' : f.banco === 'CIUDAD' ? 'badge-ciudad' : 'badge-otros'}">${escHtml(f.banco)}</span></td>
                 <td class="p-4 font-semibold text-slate-800 dark:text-slate-200">${escHtml(f.detalle)}</td>
-                <td class="p-4 text-center font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">${f.proxima}</td>
+                <td class="p-4 text-center font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">${escHtml(f.proxima)}</td>
                 <td class="p-4 text-center font-semibold text-slate-700 dark:text-slate-200">${f.restantes}</td>
                 <td class="p-4 text-right font-bold tabular-nums text-slate-900 dark:text-slate-100">${fmt(f.falta)}</td>
                 <td class="p-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">${etiquetaMes(f.ultimaMes, { month: 'short', year: 'numeric' })}</td>
@@ -2278,7 +2289,11 @@ function borrar(id) {
 function confirmReset() {
     if (confirm('¿Borrar todos los datos locales?')) {
         transacciones = []; claveActiva = null;
-        colaPersistencia.then(() => { localStorage.clear(); location.reload(); });
+        colaPersistencia.then(() => {
+            CLAVES_DATOS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
+            firmaExportada = null;   // el usuario ya confirmó: no avisar al recargar
+            location.reload();
+        });
     }
 }
 

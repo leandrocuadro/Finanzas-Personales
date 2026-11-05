@@ -40,6 +40,13 @@ La versión se muestra junto al título de la app.
 
 ### Registro de cambios
 
+#### 4.9.1
+- **Borrar Todo** ya no apaga el modo "No guardar en este navegador" ni borra la preferencia de modo oscuro. Antes, usarlo en una PC ajena volvía a guardar datos en el navegador sin avisar.
+- **Aviso de cambios sin exportar**: en el modo sin guardado, el aviso al cerrar la pestaña solo aparece si los datos cambiaron respecto del último JSON exportado o importado. Cambiar de mes o importar ya no lo activan.
+- **Texto seguro en la tabla**: los detalles, categorías y bancos se muestran como texto. Una categoría con comillas (por ejemplo `Libros "usados"`) ya no se corta, y un JSON ajeno no puede ejecutar código.
+- **Mes vacío**: si el campo de mes queda vacío, vuelve al mes anterior, y el gasto manual pide el mes en lugar de guardarse sin mes.
+- **Importar JSON**: se puede importar dos veces seguidas el mismo archivo.
+
 #### 4.9.0
 - **Modo sin guardado en navegador** (para PCs ajenas): desde **Importar / Restaurar** se activa "No guardar en este navegador". La app no guarda nada en el navegador, arranca vacía y los datos se cargan con Importar JSON y se guardan con Exportar JSON. Si hay cambios sin exportar, al cerrar la pestaña aparece un aviso. Al activarlo se borran los datos guardados en ese navegador.
 - **Ocultar montos**: un botón con ojito sobre las tres tarjetas (ingresos, egresos y neto) reemplaza los montos por asteriscos. Solo afecta a la pantalla y no se guarda.
