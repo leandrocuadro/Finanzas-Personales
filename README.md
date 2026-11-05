@@ -40,6 +40,12 @@ La versión se muestra junto al título de la app.
 
 ### Registro de cambios
 
+#### 4.8.0
+- **Duplicados**: al importar un resumen o pegar texto, los movimientos que ya están cargados (mismo banco, detalle, monto, cuota y mes) se detectan. En la vista previa aparecen marcados como "Ya cargado" y desmarcados por defecto. Al pegar texto se omiten y se informa cuántos.
+- **Excel**: incluye las columnas CATEGORÍA y FRECUENCIA (Mensual, N cuotas o Única).
+- **Deshacer**: después de borrar, editar, duplicar o cargar movimientos, un aviso permite deshacer el último cambio durante 8 segundos.
+- **Cuotas pendientes**: nueva sección con los consumos en cuotas que todavía tienen meses por pagar, cuánto falta pagar en total y cuándo termina cada uno.
+
 #### 4.7.0
 - **Filtro de categorías con selección múltiple**: el desplegable de categorías tiene casillas. Podés marcar varias (por ejemplo Servicios + Suscripciones) y la tabla muestra los movimientos de cualquiera de ellas. "Todas las categorías" limpia la selección.
 

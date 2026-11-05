@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Finanzas Pro - Local Edition v4.7.0</title>
+    <title>Gestor de Finanzas Pro - Local Edition v4.8.0</title>
     <link rel="stylesheet" href="vendor/fonts.css">
     <link rel="stylesheet" href="vendor/tailwind.css">
     <script src="vendor/chart.umd.min.js"></script>
@@ -210,12 +210,24 @@
             background: #0b1e36;
         }
 
+        /* Botón de deshacer en el aviso */
+        #toast-accion { pointer-events: auto; margin-left: 0.5rem; padding: 0.25rem 0.75rem; border-radius: 999px; background: #2563eb; color: #fff; font-weight: 800; font-size: 0.7rem; }
+        #toast-accion:hover { background: #1d4ed8; }
+        #toast-accion.hidden { display: none; }
+        /* Duplicados en la vista previa */
+        .badge-dup { display: inline-block; margin-left: 0.5rem; padding: 0.125rem 0.5rem; border-radius: 999px; font-size: 10px; font-weight: 800; background: #fef3c7; color: #b45309; border: 1px solid #fde68a; vertical-align: middle; }
+        html.dark .badge-dup { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: rgba(245, 158, 11, 0.35); }
+        .badge-dup.hidden { display: none; }
+        .preview-dup-row { opacity: 0.55; }
+
         /* Componentes propios (el CSS compilado de vendor/ no trae estas utilidades) */
         .btn-vincular { background-color: #059669; border: 1px solid #059669; color: #fff; box-shadow: 0 4px 12px -2px rgba(5, 150, 105, 0.35); }
         .btn-vincular:hover { background-color: #047857; }
         .btn-vincular:not(.hidden) { display: inline-flex; align-items: center; }
         .fc-trigger { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; min-width: 11rem; white-space: nowrap; cursor: pointer; }
         .fc-icon { width: 14px; height: 14px; flex-shrink: 0; }
+        #fcTodasLabel { position: sticky; top: 0; z-index: 1; background-color: #ffffff; }
+        html.dark #fcTodasLabel { background-color: #0f172a; }
         .fc-panel { position: absolute; right: 0; top: 100%; margin-top: 0.5rem; z-index: 30; width: 15rem; max-height: 20rem; overflow-y: auto; }
         @media (max-width: 639px) { .fc-trigger { width: 100%; } }
 
@@ -234,6 +246,7 @@
 <div id="toast" class="bg-slate-950/95 dark:bg-white text-white dark:text-slate-950 text-xs font-semibold px-5 py-3.5 rounded-full shadow-2xl border border-slate-800 dark:border-slate-200 flex items-center gap-2.5 backdrop-blur-md">
     <svg id="toast-icon" class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
     <span id="toast-msg"></span>
+    <button id="toast-accion" type="button" onclick="ejecutarAccionToast()" class="hidden"></button>
 </div>
 
 <!-- Modal Importar Backup -->
@@ -386,14 +399,14 @@
         <div class="p-4 bg-slate-50/80 dark:bg-slate-950/60 border-b border-slate-100 dark:border-slate-800 flex flex-wrap gap-4 items-center">
             <div>
                 <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">Banco detectado</label>
-                <select id="preview-banco" class="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500">
+                <select id="preview-banco" onchange="marcarDuplicadosPreview()" class="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500">
                     <option value="CIUDAD">Ciudad</option>
                     <option value="GALICIA">Galicia</option>
                 </select>
             </div>
             <div>
                 <label class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1">Mes de imputación</label>
-                <input type="month" id="preview-mes" class="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500">
+                <input type="month" id="preview-mes" onchange="marcarDuplicadosPreview()" class="border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500">
             </div>
             <div class="ml-auto text-right">
                 <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total detectado</p>
@@ -434,7 +447,7 @@
                         Finanzas <span class="text-blue-600 dark:text-blue-400">Local</span>
                     </h1>
                     <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800 tracking-wider">PRO</span>
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.7.0</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.8.0</span>
                 </div>
                 <p class="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide mt-0.5">Gestión de Finanzas Personales</p>
             </div>
@@ -626,7 +639,7 @@
                         <svg class="fc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div id="filtroCategoriaPanel" class="hidden fc-panel rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl p-2">
-                        <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 mb-1">
+                        <label id="fcTodasLabel" class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 mb-1">
                             <input type="checkbox" id="fcTodas" onchange="fcMarcarTodas()" class="accent-blue-600 w-4 h-4"> Todas las categorías
                         </label>
                         <div id="filtroCategoriaOpciones"></div>
@@ -658,11 +671,40 @@
             </table>
         </div>
     </div>
+
+    <!-- Cuotas pendientes -->
+    <div class="card overflow-hidden">
+        <div class="p-5 bg-slate-50/70 dark:bg-slate-900/80 border-b border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+            <h3 class="font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Cuotas pendientes
+            </h3>
+            <div class="text-right">
+                <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Falta pagar en total</p>
+                <p id="cuotas-total" class="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">$0,00</p>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-100/80 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] uppercase font-bold tracking-wider border-b border-slate-200/80 dark:border-slate-800">
+                    <tr>
+                        <th class="p-4">Banco</th>
+                        <th class="p-4">Concepto</th>
+                        <th class="p-4 text-center">Próxima cuota</th>
+                        <th class="p-4 text-center">Restantes</th>
+                        <th class="p-4 text-right">Falta pagar</th>
+                        <th class="p-4 text-center">Última cuota</th>
+                    </tr>
+                </thead>
+                <tbody id="cuotas-body" class="text-sm divide-y divide-slate-100 dark:divide-slate-800/80"></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
 // ── Versión de la app ────────────────────────────────────────────
-const APP_VERSION = '4.7.0';
+const APP_VERSION = '4.8.0';
 
 // ── PDF.js setup ────────────────────────────────────────────────
 if (window['pdfjs-dist/build/pdf']) {
@@ -803,7 +845,8 @@ function poblarCategorias() {
     const disponibles = categoriasDisponibles();
     // Quita del filtro las categorías que ya no existen
     [...categoriasFiltro].forEach(c => { if (!disponibles.includes(c)) categoriasFiltro.delete(c); });
-    document.getElementById('filtroCategoriaOpciones').innerHTML = disponibles.map(c => `
+    const ordenadas = [...disponibles].sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+    document.getElementById('filtroCategoriaOpciones').innerHTML = ordenadas.map(c => `
         <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-200">
             <input type="checkbox" value="${c}" ${categoriasFiltro.has(c) ? 'checked' : ''} onchange="cambiarFiltroCategoria(this)" class="accent-blue-600 w-4 h-4"> ${c}
         </label>`).join('');
@@ -889,7 +932,7 @@ function agregarCategoria() {
 
 // ── Toast ────────────────────────────────────────────────────────
 let toastTimer;
-function showToast(msg, ok = true) {
+function showToast(msg, ok = true, accion = null) {
     const el = document.getElementById('toast');
     document.getElementById('toast-msg').textContent = msg;
     const icon = document.getElementById('toast-icon');
@@ -897,9 +940,44 @@ function showToast(msg, ok = true) {
     icon.innerHTML = ok
         ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>'
         : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>';
+    const btnA = document.getElementById('toast-accion');
+    accionToast = accion;
+    btnA.textContent = accion ? accion.label : '';
+    btnA.classList.toggle('hidden', !accion);
     el.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+    toastTimer = setTimeout(() => { el.classList.remove('show'); accionToast = null; }, accion ? 8000 : 3500);
+}
+let accionToast = null;
+function ejecutarAccionToast() {
+    const a = accionToast;
+    accionToast = null;
+    clearTimeout(toastTimer);
+    document.getElementById('toast').classList.remove('show');
+    if (a) a.fn();
+}
+
+// ── Deshacer ─────────────────────────────────────────────────────
+// Antes de cada cambio se guarda una copia del estado. Deshacer restaura la última.
+let ultimoEstado = null;
+function capturarEstado() {
+    return JSON.parse(JSON.stringify({ transacciones, ingresos: config.ingresos, categorias: config.categorias || [] }));
+}
+function deshacerUltimo() {
+    if (!ultimoEstado) { showToast('No hay nada para deshacer.', false); return; }
+    transacciones = ultimoEstado.transacciones;
+    config.ingresos = ultimoEstado.ingresos;
+    config.categorias = ultimoEstado.categorias;
+    ultimoEstado = null;
+    guardarDatos();
+    poblarCategorias();
+    cargarIngresosDelMes();
+    actualizarUI();
+    showToast('Cambio deshecho.');
+}
+
+function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 // ── Modals ───────────────────────────────────────────────────────
@@ -1667,6 +1745,41 @@ function parsearGalicia(lines) {
 
 // ── Preview Modal ────────────────────────────────────────────────
 
+// ── Detección de duplicados ──────────────────────────────────────
+// Duplicado: ya existe un movimiento con el mismo banco, detalle, monto, cuota y mes.
+// Los gastos mensuales cuentan como duplicados si ya están vigentes en ese mes.
+function esDuplicadoItem(banco, detalle, monto, cuotaActual, cuotaTotal, mes, existentes = transacciones) {
+    const det = String(detalle).trim().toUpperCase();
+    const cuota = `${cuotaActual}/${cuotaTotal}`;
+    return existentes.some(t => {
+        if ((t.banco || '') !== banco) return false;
+        if (String(t.detalle).trim().toUpperCase() !== det) return false;
+        if (Math.abs(t.monto - monto) >= 0.005) return false;
+        if (t.recurrente) {
+            return cuotaTotal === 1 && t.mesImputacion <= mes && (!t.hastaMes || t.hastaMes >= mes);
+        }
+        return t.mesImputacion === mes && t.cuota === cuota;
+    });
+}
+// Marca los duplicados de la vista previa: se desmarcan, quedan atenuados y con aviso.
+function marcarDuplicadosPreview() {
+    const banco = document.getElementById('preview-banco').value;
+    const mes = document.getElementById('preview-mes').value;
+    let n = 0;
+    previewItems.forEach((it, idx) => {
+        const chk = document.querySelector(`.preview-check[data-idx="${idx}"]`);
+        if (!chk) return;
+        const fila = chk.closest('tr');
+        const dup = !!mes && esDuplicadoItem(banco, it.detalle, it.monto, it.cuotaActual, it.cuotaTotal, mes);
+        if (dup) n++;
+        fila.classList.toggle('preview-dup-row', dup);
+        fila.querySelector('.preview-dup').classList.toggle('hidden', !dup);
+        chk.checked = !dup;
+    });
+    const aviso = n ? ` · ${n} ya cargado${n !== 1 ? 's' : ''} (desmarcado${n !== 1 ? 's' : ''})` : '';
+    document.getElementById('preview-subtitle').textContent = `${banco} · ${previewItems.length} consumos detectados${aviso}`;
+}
+
 function mostrarPreview(banco, items) {
     previewItems = items;
     document.getElementById('preview-banco').value = banco;
@@ -1683,7 +1796,7 @@ function mostrarPreview(banco, items) {
         tbody.innerHTML += `
             <tr class="border-b border-slate-100 dark:border-slate-800 hover:bg-blue-50/30 dark:hover:bg-blue-950/20 transition-colors">
                 <td class="p-3.5"><input type="checkbox" checked data-idx="${idx}" class="preview-check accent-blue-600 w-4 h-4 rounded cursor-pointer"></td>
-                <td class="p-3.5 font-semibold text-slate-800 dark:text-slate-200">${it.detalle}</td>
+                <td class="p-3.5 font-semibold text-slate-800 dark:text-slate-200">${escHtml(it.detalle)}<span class="preview-dup badge-dup hidden">Ya cargado</span></td>
                 <td class="p-3.5"><select data-idx="${idx}" class="preview-cat border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 outline-none focus:border-blue-500">${opcionesCategoria(it.categoria)}</select></td>
                 <td class="p-3.5 text-center text-slate-400 dark:text-slate-500 font-mono text-xs font-medium">${cuotaLabel}</td>
                 <td class="p-3.5 text-right tabular-nums ${colorMonto}">${fmt(it.monto)}</td>
@@ -1692,6 +1805,7 @@ function mostrarPreview(banco, items) {
 
     document.getElementById('preview-subtitle').textContent = `${banco} · ${items.length} consumos detectados`;
     document.getElementById('preview-total').textContent = fmt(total);
+    marcarDuplicadosPreview();
     abrirModal('modal-preview');
 }
 
@@ -1703,6 +1817,7 @@ function confirmarCargaPDF() {
     const checks = document.querySelectorAll('.preview-check');
     const ts = Date.now();
     let count = 0;
+    const snap = capturarEstado();
 
     checks.forEach(chk => {
         if (!chk.checked) return;
@@ -1727,10 +1842,12 @@ function confirmarCargaPDF() {
         }
     });
 
+    if (count > 0) ultimoEstado = snap;
     guardarDatos();
     cerrarModal('modal-preview');
     actualizarUI();
-    showToast(`${count} movimiento${count !== 1 ? 's' : ''} cargado${count !== 1 ? 's' : ''} correctamente.`);
+    showToast(`${count} movimiento${count !== 1 ? 's' : ''} cargado${count !== 1 ? 's' : ''} correctamente.`,
+        true, count > 0 ? { label: 'Deshacer', fn: deshacerUltimo } : null);
 }
 
 // ── Config (ingresos por mes) ────────────────────────────────────
@@ -1810,7 +1927,9 @@ function procesar(bancoElegido) {
     const raw = document.getElementById('rawInput').value.trim();
     const mesRef = document.getElementById('mesReferencia').value;
     if (!mesRef || !raw) return alert('Complete el mes y pegue los datos.');
-    const ts = Date.now(); let count = 0;
+    const ts = Date.now(); let count = 0; let omitidos = 0;
+    const snap = capturarEstado();
+    const existentes = transacciones.slice();
     raw.split('\n').forEach((line, idx) => {
         const text = line.trim(); if (!text) return;
         let cuotaActual = 1, cuotaTotal = 1, monto = 0;
@@ -1820,6 +1939,7 @@ function procesar(bancoElegido) {
         if (mm) monto = cleanAmount(mm[1]);
         let det = text.replace(/^\d{2}[-.]\d{2}[-.]\d{2,4}\s+[*K]?\s*/, '').replace(/(\d{2})\/(\d{2})/, '').replace(/[\d\.]+,\d{2}$/, '').replace(/\d{6,}$/, '').trim();
         if (!isNaN(monto) && monto !== 0) {
+            if (esDuplicadoItem(bancoElegido, det || 'Consumo sin nombre', monto, cuotaActual, cuotaTotal, mesRef, existentes)) { omitidos++; return; }
             const grupoId = `${ts}-${idx}`;
             const categoria = sugerirCategoria(det);
             for (let i = 0; i < ((cuotaTotal - cuotaActual) + 1); i++) {
@@ -1828,7 +1948,13 @@ function procesar(bancoElegido) {
             }
         }
     });
-    if (count > 0) { guardarDatos(); document.getElementById('rawInput').value = ''; actualizarUI(); }
+    if (count > 0) {
+        ultimoEstado = snap;
+        guardarDatos(); document.getElementById('rawInput').value = ''; actualizarUI();
+        const extra = omitidos ? ` ${omitidos} ya estaban cargados y se omitieron.` : '';
+        showToast(`${count} movimiento${count !== 1 ? 's' : ''} cargado${count !== 1 ? 's' : ''}.${extra}`, true, { label: 'Deshacer', fn: deshacerUltimo });
+    }
+    else if (omitidos) showToast(`Todos los movimientos ya estaban cargados (${omitidos} omitidos).`, false);
     else alert('No se detectaron movimientos válidos. Las líneas deben terminar en monto con coma (ej: 5.953,33)');
 }
 
@@ -1889,6 +2015,52 @@ function actualizarUI() {
             </tr>`;
     });
     updateChart();
+    renderCuotasPendientes();
+}
+
+// ── Cuotas pendientes ────────────────────────────────────────────
+// Consumos en cuotas con installments desde el mes actual en adelante.
+function renderCuotasPendientes() {
+    const hoy = mesActual();
+    const grupos = {};
+    transacciones.forEach(t => {
+        if (t.recurrente) return;
+        const total = parseInt(String(t.cuota || '1/1').split('/')[1]) || 1;
+        if (total <= 1) return;
+        const key = grupoDe(t);
+        (grupos[key] = grupos[key] || []).push(t);
+    });
+    const filas = [];
+    Object.values(grupos).forEach(items => {
+        const pendientes = items
+            .filter(t => t.mesImputacion >= hoy)
+            .sort((a, b) => a.mesImputacion.localeCompare(b.mesImputacion));
+        if (!pendientes.length) return;
+        const primera = pendientes[0];
+        const ultima = pendientes[pendientes.length - 1];
+        filas.push({
+            banco: primera.banco,
+            detalle: primera.detalle,
+            proxima: primera.cuota,
+            restantes: pendientes.length,
+            falta: pendientes.reduce((a, t) => a + t.monto, 0),
+            ultimaMes: ultima.mesImputacion
+        });
+    });
+    filas.sort((a, b) => a.ultimaMes.localeCompare(b.ultimaMes) || a.detalle.localeCompare(b.detalle));
+    const total = filas.reduce((a, f) => a + f.falta, 0);
+    document.getElementById('cuotas-total').textContent = fmt(total);
+    document.getElementById('cuotas-body').innerHTML = filas.length
+        ? filas.map(f => `
+            <tr class="hover:bg-blue-50/40 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wider ${f.banco === 'GALICIA' ? 'badge-galicia' : f.banco === 'CIUDAD' ? 'badge-ciudad' : 'badge-otros'}">${f.banco}</span></td>
+                <td class="p-4 font-semibold text-slate-800 dark:text-slate-200">${escHtml(f.detalle)}</td>
+                <td class="p-4 text-center font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">${f.proxima}</td>
+                <td class="p-4 text-center font-semibold text-slate-700 dark:text-slate-200">${f.restantes}</td>
+                <td class="p-4 text-right font-bold tabular-nums text-slate-900 dark:text-slate-100">${fmt(f.falta)}</td>
+                <td class="p-4 text-center text-xs font-semibold text-slate-500 dark:text-slate-400">${etiquetaMes(f.ultimaMes, { month: 'short', year: 'numeric' })}</td>
+            </tr>`).join('')
+        : '<tr><td colspan="6" class="p-6 text-center text-slate-400 dark:text-slate-500 text-sm">No hay cuotas pendientes.</td></tr>';
 }
 
 // ── Editar / duplicar / borrar ───────────────────────────────────
@@ -1919,6 +2091,7 @@ function guardarEdicion() {
     const categoria = document.getElementById('edit-categoria').value;
     const aplicarATodas = !document.getElementById('edit-todas-wrap').classList.contains('hidden')
         && document.getElementById('edit-todas').checked;
+    const snap = capturarEstado();
     const destinos = aplicarATodas ? transacciones.filter(x => grupoDe(x) === grupoDe(base)) : [base];
     destinos.forEach(x => { x.detalle = det.toUpperCase(); x.monto = monto; x.categoria = categoria; });
     // Frecuencia mensual (solo si el control estaba visible)
@@ -1934,13 +2107,16 @@ function guardarEdicion() {
             else base.hastaMes = previo;
         }
     }
+    ultimoEstado = snap;
     guardarDatos();
     cerrarModal('modal-editar');
     actualizarUI();
-    showToast(aplicarATodas && destinos.length > 1 ? `Actualizadas ${destinos.length} cuotas.` : 'Movimiento actualizado.');
+    showToast(aplicarATodas && destinos.length > 1 ? `Actualizadas ${destinos.length} cuotas.` : 'Movimiento actualizado.',
+        true, { label: 'Deshacer', fn: deshacerUltimo });
 }
 function duplicar(id) {
     const base = obtenerBase(id); if (!base) return;
+    const snap = capturarEstado();
     const { hastaMes, recurrente, ...resto } = base;
     const ts = Date.now();
     transacciones.push({
@@ -1950,11 +2126,14 @@ function duplicar(id) {
         mesImputacion: document.getElementById('mesReferencia').value,
         cuota: recurrente ? '1/1' : base.cuota
     });
+    ultimoEstado = snap;
     guardarDatos();
     actualizarUI();
+    showToast('Movimiento duplicado.', true, { label: 'Deshacer', fn: deshacerUltimo });
 }
 function borrar(id) {
     const base = obtenerBase(id); if (!base) return;
+    const snap = capturarEstado();
     const mesRef = document.getElementById('mesReferencia').value;
     if (base.recurrente) {
         const desde = etiquetaMes(mesRef, { month: 'long', year: 'numeric' });
@@ -1976,8 +2155,10 @@ function borrar(id) {
             transacciones = transacciones.filter(x => x !== base);
         }
     }
+    ultimoEstado = snap;
     guardarDatos();
     actualizarUI();
+    showToast('Movimiento borrado.', true, { label: 'Deshacer', fn: deshacerUltimo });
 }
 function confirmReset() {
     if (confirm('¿Borrar todos los datos locales?')) {
@@ -2066,6 +2247,13 @@ function setChartRange(r) {
 }
 
 // ── Exportar Excel ───────────────────────────────────────────────
+// Texto de frecuencia para el Excel: Mensual, N cuotas o Única
+function frecuenciaDe(t) {
+    if (t.recurrente) return 'Mensual';
+    const n = parseInt(String(t.cuota || '1/1').split('/')[1]) || 1;
+    return n > 1 ? `${n} cuotas` : 'Única';
+}
+
 async function exportarExcel() {
     if (typeof ExcelJS === 'undefined') { alert('La librería de Excel aún se está cargando.'); return; }
 
@@ -2100,6 +2288,8 @@ async function exportarExcel() {
                       : t.banco === 'GALICIA' ? 'Banco Galicia'
                       : 'Otros Gastos',
                 detalle: t.detalle,
+                categoria: t.categoria || 'Sin categoría',
+                frecuencia: frecuenciaDe(t),
                 montos: {}
             };
         }
@@ -2122,11 +2312,13 @@ async function exportarExcel() {
     sh.columns = [
         { key: 'banco',   width: 18 },
         { key: 'detalle', width: 42 },
+        { key: 'categoria', width: 18 },
+        { key: 'frecuencia', width: 14 },
         ...cols.map(m => ({ key: m, width: 15 }))
     ];
 
     // ── Fila de título ───────────────────────────────────────────
-    const totalCols = 2 + cols.length;
+    const totalCols = 4 + cols.length;
     const tituloRow = sh.addRow([`PROYECCIÓN DE GASTOS — desde ${fmtMes(mesInicio)}`]);
     sh.mergeCells(1, 1, 1, totalCols);
     const tituloCell = sh.getCell('A1');
@@ -2139,7 +2331,7 @@ async function exportarExcel() {
     sh.addRow([]);
 
     // ── Fila de encabezados ──────────────────────────────────────
-    const headerRow = sh.addRow(['BANCO', 'DETALLE DEL CONSUMO', ...cols.map(fmtMes)]);
+    const headerRow = sh.addRow(['BANCO', 'DETALLE DEL CONSUMO', 'CATEGORÍA', 'FRECUENCIA', ...cols.map(fmtMes)]);
     headerRow.height = 22;
     headerRow.eachCell((cell, col) => {
         cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
@@ -2162,7 +2354,7 @@ async function exportarExcel() {
 
     filas.forEach((g, i) => {
         const valores = cols.map(m => g.montos[m] || null);
-        const row = sh.addRow([g.banco, g.detalle, ...valores]);
+        const row = sh.addRow([g.banco, g.detalle, g.categoria, g.frecuencia, ...valores]);
         row.height = 18;
 
         const bgColor = i % 2 === 0 ? COLOR_BLANCO : COLOR_GRIS;
@@ -2179,11 +2371,13 @@ async function exportarExcel() {
                 cell.alignment = { horizontal: 'left', vertical: 'middle' };
             } else if (col === 2) {
                 cell.alignment = { horizontal: 'left', vertical: 'middle' };
+            } else if (col <= 4) {
+                cell.alignment = { horizontal: 'center', vertical: 'middle' };
             } else {
                 // Columnas de meses: formato numérico
                 cell.numFmt = NUMERO.numFmt;
                 cell.alignment = { horizontal: 'right', vertical: 'middle' };
-                const m = cols[col - 3];
+                const m = cols[col - 5];
                 if (g.montos[m]) totales[m] += g.montos[m];
             }
         });
@@ -2193,7 +2387,7 @@ async function exportarExcel() {
     const sepRow = sh.addRow([]);
     sepRow.height = 4;
 
-    const totalRow = sh.addRow(['', 'TOTAL GENERAL', ...cols.map(m => totales[m] || 0)]);
+    const totalRow = sh.addRow(['', 'TOTAL GENERAL', '', '', ...cols.map(m => totales[m] || 0)]);
     totalRow.height = 22;
     totalRow.eachCell({ includeEmpty: true }, (cell, col) => {
         cell.font = { bold: true, size: 10, color: { argb: 'FFFFFFFF' } };
@@ -2204,6 +2398,8 @@ async function exportarExcel() {
         };
         if (col <= 2) {
             cell.alignment = { horizontal: col === 1 ? 'left' : 'right', vertical: 'middle' };
+        } else if (col <= 4) {
+            cell.alignment = { horizontal: 'center', vertical: 'middle' };
         } else {
             cell.numFmt = NUMERO.numFmt;
             cell.alignment = { horizontal: 'right', vertical: 'middle' };
