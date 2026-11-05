@@ -40,6 +40,10 @@ La versión se muestra junto al título de la app.
 
 ### Registro de cambios
 
+#### 4.9.0
+- **Modo sin guardado en navegador** (para PCs ajenas): desde **Importar / Restaurar** se activa "No guardar en este navegador". La app no guarda nada en el navegador, arranca vacía y los datos se cargan con Importar JSON y se guardan con Exportar JSON. Si hay cambios sin exportar, al cerrar la pestaña aparece un aviso. Al activarlo se borran los datos guardados en ese navegador.
+- **Ocultar montos**: un botón con ojito sobre las tres tarjetas (ingresos, egresos y neto) reemplaza los montos por asteriscos. Solo afecta a la pantalla y no se guarda.
+
 #### 4.8.0
 - **Duplicados**: al importar un resumen o pegar texto, los movimientos que ya están cargados (mismo banco, detalle, monto, cuota y mes) se detectan. En la vista previa aparecen marcados como "Ya cargado" y desmarcados por defecto. Al pegar texto se omiten y se informa cuántos.
 - **Excel**: incluye las columnas CATEGORÍA y FRECUENCIA (Mensual, N cuotas o Única).

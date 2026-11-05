@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Finanzas Pro - Local Edition v4.8.0</title>
+    <title>Gestor de Finanzas Pro - Local Edition v4.9.0</title>
     <link rel="stylesheet" href="vendor/fonts.css">
     <link rel="stylesheet" href="vendor/tailwind.css">
     <script src="vendor/chart.umd.min.js"></script>
@@ -332,6 +332,11 @@
                 <button id="btn-quitar-clave" onclick="quitarClave()" class="flex-1 py-2 rounded-xl border border-red-200 dark:border-red-900/50 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 transition">Quitar</button>
             </div>
         </div>
+        <div class="mb-6 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+            <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Guardar datos en este navegador</p>
+            <p id="sinnav-estado" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed"></p>
+            <button id="btn-sinnav" onclick="cambiarModoNavegador()" class="mt-3 w-full py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"></button>
+        </div>
         <input type="file" id="fileInput" accept=".json" class="hidden" onchange="ejecutarImport(event)">
         <div class="flex gap-3">
             <button onclick="cerrarModal('modal-backup')" class="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Cancelar</button>
@@ -457,7 +462,7 @@
                         Finanzas <span class="text-blue-600 dark:text-blue-400">Local</span>
                     </h1>
                     <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800 tracking-wider">PRO</span>
-                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.8.0</span>
+                    <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 tracking-wider font-mono">v4.9.0</span>
                 </div>
                 <p class="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide mt-0.5">Gestión de Finanzas Personales</p>
             </div>
@@ -500,6 +505,13 @@
     </div>
 
     <!-- Indicadores (KPIs) -->
+    <div class="flex justify-end">
+        <button id="btn-ojo" type="button" onclick="toggleOcultarMontos()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition active:scale-95">
+            <svg class="ojo-abierto w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <svg class="ojo-cerrado hidden w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
+            <span>Ocultar montos</span>
+        </button>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <!-- Ingresos Totales (Tarjeta distintiva con gradiente oscuro / azul) -->
         <div class="card kpi-ingresos p-6 text-white relative overflow-hidden group">
@@ -714,7 +726,7 @@
 
 <script>
 // ── Versión de la app ────────────────────────────────────────────
-const APP_VERSION = '4.8.0';
+const APP_VERSION = '4.9.0';
 
 // ── PDF.js setup ────────────────────────────────────────────────
 if (window['pdfjs-dist/build/pdf']) {
@@ -832,6 +844,7 @@ let previewItems = []; // items pendientes de confirmar
 let editandoId = null;  // id del movimiento abierto en el modal de edición
 
 window.onload = () => {
+    if (sinNavegador) { aplicarEstado(null, null); iniciarApp(); return; }
     if (cifradoActivado()) { mostrarBloqueo(); return; }
     aplicarEstado(JSON.parse(localStorage.getItem('finanzas_v3_data')), JSON.parse(localStorage.getItem('finanzas_v3_config')));
     iniciarApp();
@@ -1036,6 +1049,7 @@ function cifradoActivado() { const s = configSeguridad(); return !!(s && s.activ
 // Guarda el estado. Sin contraseña: en texto plano (como antes). Con contraseña: cifrado.
 // Las escrituras cifradas se encadenan para que siempre quede el último estado.
 function persistir() {
+    if (sinNavegador) { cambiosSinExportar = true; return; }
     if (!claveActiva) {
         localStorage.setItem('finanzas_v3_data', JSON.stringify(transacciones));
         localStorage.setItem('finanzas_v3_config', JSON.stringify(config));
@@ -1099,7 +1113,7 @@ function actualizarSeguridadUI() {
     document.getElementById('btn-quitar-clave').style.display = activo ? '' : 'none';
     document.getElementById('btn-bloquear').style.display = activo ? '' : 'none';
 }
-function abrirBackup() { actualizarSeguridadUI(); abrirModal('modal-backup'); }
+function abrirBackup() { actualizarSeguridadUI(); actualizarSinNavegadorUI(); abrirModal('modal-backup'); }
 
 // Cifra todo el estado con la contraseña nueva (sirve para activar o cambiar)
 async function activarCifrado(clave) {
@@ -1114,6 +1128,7 @@ async function activarCifrado(clave) {
     claveActiva = { key, salt };
 }
 async function configurarClave() {
+    if (sinNavegador) { showToast('En este modo no se guarda nada en el navegador.', false); return; }
     const cambiar = cifradoActivado();
     const clave = await pedirClave({
         titulo: cambiar ? 'Cambiar contraseña' : 'Activar contraseña',
@@ -1230,6 +1245,7 @@ document.getElementById('form-bloqueo').addEventListener('submit', async e => {
 
 // ── Backup JSON ──────────────────────────────────────────────────
 function descargarArchivo(contenido, nombre) {
+    cambiosSinExportar = false;
     const blob = new Blob([contenido], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -1315,6 +1331,55 @@ function ejecutarImport(event) {
 // ═══════════════════════════════════════════════════════════════
 // ── DRAG & DROP PDF ──────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════
+// ── Modo sin guardado en navegador ───────────────────────────────
+// Pensado para PCs ajenas: no se guarda nada en el navegador. Los datos se cargan con
+// Importar JSON y se guardan con Exportar JSON.
+// ═══════════════════════════════════════════════════════════════
+const CLAVE_SIN_NAVEGADOR = 'finanzas_v3_sin_navegador';
+let sinNavegador = localStorage.getItem(CLAVE_SIN_NAVEGADOR) === '1';
+let cambiosSinExportar = false;   // hay cambios que todavía no están en un JSON exportado
+
+function actualizarSinNavegadorUI() {
+    const txt = document.getElementById('sinnav-estado');
+    const btn = document.getElementById('btn-sinnav');
+    if (!txt || !btn) return;
+    if (sinNavegador) {
+        txt.textContent = 'Activado: no se guarda nada en este navegador. Para guardar tus cambios usá Exportar JSON.';
+        btn.textContent = 'Volver a guardar en este navegador';
+    } else {
+        txt.textContent = 'Desactivado: los datos se guardan en este navegador. Activalo en una PC ajena.';
+        btn.textContent = 'No guardar en este navegador';
+    }
+}
+
+async function cambiarModoNavegador() {
+    if (!sinNavegador) {
+        if (!confirm('Se van a borrar los datos guardados en este navegador y la app va a quedar vacía.\n\nAntes exportá el JSON si tenés datos que querés conservar.\n\n¿Continuar?')) return;
+        await colaPersistencia;
+        await colaArchivo;
+        fileHandle = null; archivoListo = false; errorArchivo = null;
+        await borrarHandleDB();
+        ['finanzas_v3_data', 'finanzas_v3_config', 'finanzas_v3_cifrado', 'finanzas_v3_seguridad', 'finanzas_v3_intentos']
+            .forEach(k => { try { localStorage.removeItem(k); } catch {} });
+        claveActiva = null;
+        localStorage.setItem(CLAVE_SIN_NAVEGADOR, '1');
+        location.reload();
+    } else {
+        if (!confirm('Los datos de la app se van a guardar en este navegador.\n\n¿Continuar?')) return;
+        localStorage.removeItem(CLAVE_SIN_NAVEGADOR);
+        sinNavegador = false;
+        cambiosSinExportar = false;
+        persistir();
+        location.reload();
+    }
+}
+
+// Aviso si se intenta cerrar la pestaña con cambios que no se exportaron
+window.addEventListener('beforeunload', e => {
+    if (sinNavegador && cambiosSinExportar) { e.preventDefault(); e.returnValue = ''; }
+});
 
 // ═══════════════════════════════════════════════════════════════
 // ── Archivo de respaldo vinculado (File System Access API) ───────
@@ -1498,7 +1563,7 @@ async function verificarVinculo(h, preguntar) {
 }
 
 async function vincularArchivo() {
-    if (!SOPORTA_ARCHIVO) return;
+    if (!SOPORTA_ARCHIVO || sinNavegador) return;
     let h = fileHandle;
     // Si ya hay un archivo vinculado pero sin permiso activo, se reconecta sin elegir otro
     const reconectar = !!h && !(await permisoEscritura(h, false));
@@ -1552,7 +1617,7 @@ async function desvincularArchivo() {
 // Al abrir la app: recupera el vínculo guardado. Si el permiso no está activo, se pide con un clic.
 async function restaurarVinculo() {
     actualizarEstadoArchivoUI();
-    if (!SOPORTA_ARCHIVO) return;
+    if (!SOPORTA_ARCHIVO || sinNavegador) return;
     const h = await leerHandleDB();
     if (!h) return;
     fileHandle = h;
@@ -1571,6 +1636,12 @@ function actualizarEstadoArchivoUI() {
     const btnV = document.getElementById('btn-vincular');
     const btnD = document.getElementById('btn-desvincular');
     if (!txt || !btnV || !btnD) return;
+    if (sinNavegador) {
+        btnV.classList.add('hidden');
+        btnD.classList.add('hidden');
+        txt.textContent = 'Modo sin guardado en navegador: los cambios se guardan al exportar el JSON.';
+        return;
+    }
     if (!SOPORTA_ARCHIVO) {
         btnV.classList.add('hidden');
         btnD.classList.add('hidden');
@@ -1988,14 +2059,33 @@ function cleanAmount(s) { return parseFloat(s.replace(/[^\d,]/g, '').replace(','
 function fmt(n) { return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(n); }
 
 // ── UI ───────────────────────────────────────────────────────────
+// Ocultar montos: solo en pantalla, no se guarda (para no escribir en el navegador)
+let montosOcultos = false;
+const MONTO_OCULTO = '••••••';
+function setMonto(id, valor) {
+    document.getElementById(id).innerText = montosOcultos ? MONTO_OCULTO : fmt(valor);
+}
+function toggleOcultarMontos() {
+    montosOcultos = !montosOcultos;
+    actualizarBotonOjo();
+    actualizarUI();
+}
+function actualizarBotonOjo() {
+    const b = document.getElementById('btn-ojo');
+    if (!b) return;
+    b.querySelector('span').textContent = montosOcultos ? 'Mostrar montos' : 'Ocultar montos';
+    b.querySelector('.ojo-abierto').classList.toggle('hidden', montosOcultos);
+    b.querySelector('.ojo-cerrado').classList.toggle('hidden', !montosOcultos);
+}
+
 function actualizarUI() {
     const mesRef = document.getElementById('mesReferencia').value;
     const tI = totalIngresos(mesRef);
     const filMes = movimientosDelMes(mesRef);
     const tE = filMes.reduce((a, t) => a + t.monto, 0);
-    document.getElementById('ui-ingresos').innerText = fmt(tI);
-    document.getElementById('ui-egresos').innerText = fmt(tE);
-    document.getElementById('ui-disponible').innerText = fmt(tI - tE);
+    setMonto('ui-ingresos', tI);
+    setMonto('ui-egresos', tE);
+    setMonto('ui-disponible', tI - tE);
     document.getElementById('mes-titulo').innerText = mesRef;
 
     const fB = document.getElementById('filtroBanco')?.value || 'TODOS';
