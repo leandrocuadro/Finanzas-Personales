@@ -1400,13 +1400,28 @@ function sincronizarArchivo() {
 }
 
 // Lee el archivo. null = vacío o nuevo. Lanza error si no es un respaldo de esta app.
-async function leerArchivoVinculado(h) {
+// Abre un archivo cifrado. Primero prueba con la contraseña activa en la app (es el caso normal:
+// el archivo lo escribió esta app). Si no alcanza, pide la contraseña con la que se cifró.
+async function descifrarArchivo(parsed, preguntar) {
+    if (claveActiva) {
+        try { return JSON.parse(await descifrarTexto(parsed, claveActiva.key)); } catch {}
+    }
+    if (!preguntar) throw new Error('El archivo está cifrado. Usá Vincular archivo de respaldo para abrirlo.');
+    const clave = await pedirClave({ titulo: 'Archivo cifrado', texto: 'Ingresá la contraseña con la que se cifró este archivo.' });
+    if (clave === null) { const e = new Error('Cancelado'); e.name = 'AbortError'; throw e; }
+    try {
+        const key = await derivarClave(clave, a64Bytes(parsed.salt), parsed.iter || CIFRADO_ITER);
+        return JSON.parse(await descifrarTexto(parsed, key));
+    } catch { throw new Error('Contraseña incorrecta para este archivo.'); }
+}
+
+async function leerArchivoVinculado(h, preguntar) {
     const file = await h.getFile();
     if (file.size === 0) return null;
     let parsed;
     try { parsed = JSON.parse(await file.text()); }
     catch { throw new Error('El archivo elegido no es un JSON válido. Elegí otro archivo.'); }
-    if (parsed.formato === 'finanzas-backup-cifrado') throw new Error('El archivo está cifrado. Elegí un archivo nuevo para guardar los datos actuales.');
+    if (parsed.formato === 'finanzas-backup-cifrado') parsed = await descifrarArchivo(parsed, preguntar);
     if (!Array.isArray(parsed.transacciones)) throw new Error('El archivo no es un respaldo de esta app. Elegí otro archivo.');
     return parsed;
 }
@@ -1428,7 +1443,7 @@ function cargarDatosDelArchivo(d) {
 // Compara el archivo con los datos de la app antes de escribir.
 // Nunca pisa un archivo con datos distintos sin preguntar (preguntar = false lo deja pendiente).
 async function verificarVinculo(h, preguntar) {
-    const datos = await leerArchivoVinculado(h);
+    const datos = await leerArchivoVinculado(h, preguntar);
     fileHandle = h;
     await guardarHandleDB(h);
 
